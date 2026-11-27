@@ -332,6 +332,8 @@ body.rhome .kid.add{background:rgba(15,23,42,.72);border-color:#22D3EE}body.rhom
 .car-art{width:100%;height:100%;object-fit:contain;display:block}
 .ac-item.locked .ac-ip{opacity:.6}.ac-item.locked .car-art{filter:grayscale(1) brightness(.55)}
 .ac-item .tag{background:#FACC15;color:#422006;border-radius:999px;padding:4px 14px;font-size:16px}
+.rc-voices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:6px}
+.rcv{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px;border-radius:16px;background:#1E293B;border:3px solid rgba(255,255,255,.25);color:#fff}.rcv b{font-size:20px}.rcv small{font-size:12px;color:#CBD5E1}.rcv.on{border-color:#FACC15;box-shadow:0 0 0 3px #FACC15}
 /* lite mode for older iPads: no moving effects, no shadows/filters */
 body.lite *,body.lite *::before,body.lite *::after{animation:none!important;transition:none!important;box-shadow:none!important;filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body.lite .confetti,body.lite .fl{display:none!important}
@@ -342,8 +344,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.10';
+const APP_VERSION='4.11';
 const WHATS_NEW=[
+  {v:'4.11',items:[['🎙️','New kid voices! Pick Jett or Fena under Change racer']]},
   {v:'4.10',items:[['🎉','Cheers sound more excited']]},
   {v:'4.9',items:[['🗣️','Friendlier, more natural voice']]},
   {v:'4.8',items:[['🏎️','Brand-new shiny race cars in My Garage']]},
@@ -608,23 +611,28 @@ function pickVoice(){try{const vs=speechSynthesis.getVoices()||[];
   const chosen=S.settings.voiceName&&vs.find(v=>v.name===S.settings.voiceName);if(chosen&&voiceScore(chosen)>-100){voice=chosen;return;}
   voice=vs.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a))[0]||null;}catch(e){}}
 if(canSpeak()){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}}
-function unlockSpeech(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}voLoad();if(unlocked||!canSpeak())return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}}
+function unlockSpeech(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}voLoad();voLoad('jett');voLoad('fena');if(unlocked||!canSpeak())return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}}
 document.addEventListener('pointerdown',unlockSpeech,{once:true});
 document.addEventListener('touchstart',unlockSpeech,{once:true});
 /* ===== recorded kid voice: one sprite file + map of phrases -> [start,end] seconds; stitched with Web Audio ===== */
-const VO={map:null,buf:null,loading:false,src:null,timer:null};
+const VOICES=[['jett','Jett','boy'],['fena','Fena','girl']];
+const VO={sets:{},loading:{},src:null};
 const voNorm=t=>String(t).toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim();
-function voLoad(){if(VO.loading||VO.buf)return;VO.loading=true;
-  fetch('audio/voice.json').then(r=>r.ok?r.json():null).then(m=>{if(!m||!m.clips)return null;VO.map=m.clips;return fetch('audio/'+m.file).then(r=>r.arrayBuffer());})
+function voiceOf(p){if(p&&VOICES.some(v=>v[0]===p.voice))return p.voice;const r=p&&p.racer;return (r==='pink'||r==='purple')?'fena':'jett';}
+function activeVoice(){try{return voiceOf(getPlayer(viewPlayer)||(cur&&cur.p)||S.players[0]);}catch(e){return 'jett';}}
+function voLoad(id){id=id||activeVoice();if(VO.loading[id]||VO.sets[id])return;VO.loading[id]=1;let map=null;
+  fetch('audio/voice-'+id+'.json').then(r=>r.ok?r.json():null).then(m=>{if(!m||!m.clips)return null;map=m.clips;return fetch('audio/'+m.file).then(r=>r.arrayBuffer());})
    .then(ab=>{if(!ab)return;actx=actx||new (window.AudioContext||window.webkitAudioContext)();
-     return new Promise((ok,no)=>actx.decodeAudioData(ab,ok,no));}).then(b=>{if(b)VO.buf=b;}).catch(()=>{}).finally(()=>{VO.loading=false;});}
-function voPlan(t){if(!VO.map)return null;const w=voNorm(t).split(' ').filter(Boolean),out=[];let i=0;
-  while(i<w.length){let hit=0;for(let n=Math.min(14,w.length-i);n>0;n--){const k=w.slice(i,i+n).join(' ');if(VO.map[k]){out.push(VO.map[k]);hit=n;break;}}
+     return new Promise((ok,no)=>actx.decodeAudioData(ab,ok,no));}).then(b=>{if(b&&map)VO.sets[id]={map,buf:b};}).catch(()=>{}).finally(()=>{VO.loading[id]=0;});}
+function voTokens(t){const out=[];voNorm(t).split(' ').filter(Boolean).forEach(w=>{const n=/^\d+$/.test(w)?+w:NaN;
+  if(n>20&&n<100&&n%10){out.push(String(n-n%10),String(n%10));}else out.push(w);});return out;}
+function voPlan(t,map){const w=voTokens(t),out=[];let i=0;
+  while(i<w.length){let hit=0;for(let n=Math.min(14,w.length-i);n>0;n--){const k=w.slice(i,i+n).join(' ');if(map[k]){out.push(map[k]);hit=n;break;}}
     if(!hit)return null;i+=hit;}return out.length?out:null;}
 function voStop(){try{VO.src&&VO.src.forEach(x=>{try{x.stop();}catch(e){}});}catch(e){}VO.src=null;}
-function voSpeak(t){try{if(!VO.buf||!actx)return false;const plan=voPlan(t);if(!plan)return false;
+function voSpeak(t,id){try{id=id||activeVoice();const set=VO.sets[id];if(!set){voLoad(id);return false;}if(!actx)return false;const plan=voPlan(t,set.map);if(!plan)return false;
   voStop();try{speechSynthesis.cancel();}catch(e){}if(actx.state==='suspended')actx.resume();
-  let at=actx.currentTime+.03;VO.src=plan.map(([a,b])=>{const s=actx.createBufferSource();s.buffer=VO.buf;s.connect(actx.destination);s.start(at,a,Math.max(.05,b-a));at+=(b-a)+.06;return s;});
+  let at=actx.currentTime+.03;VO.src=plan.map(([a,b])=>{const s=actx.createBufferSource();s.buffer=set.buf;s.connect(actx.destination);s.start(at,a,Math.max(.05,b-a));at+=(b-a)+.07;return s;});
   return true;}catch(e){return false;}}
 function speak(t,force){
   if(!t||(!S.settings.readAloud&&!force))return;
@@ -1116,9 +1124,10 @@ const RACERS=[['blue','Blue Bolt','#2563EB'],['pink','Pink Rocket','#EC4899'],['
 const racerOf=p=>RACERS.some(r=>r[0]===p.racer)?p.racer:'blue';
 const racerFile=(p,kind)=>{const r=racerOf(p);return r==='blue'?(kind==='head'?'head.webp':'hero.webp'):(kind==='head'?'head-'+r+'.webp':'hero-'+r+'.webp');};
 function racerModal(pid,after){const p=getPlayer(pid);if(!p)return;const bg=document.createElement('div');bg.className='modal-bg';
-  bg.innerHTML=`<div class="modal rc-modal"><h2>🏁 Pick your racer</h2><div class="rc-grid">${RACERS.map(([k,n,c])=>`<button class="rc${racerOf(p)===k?' on':''}" data-r="${k}" style="--rc:${c}"><img src="art/racing/${k==='blue'?'hero.webp':'hero-'+k+'.webp'}" alt=""><b>${n}</b></button>`).join('')}</div><div class="row"><button class="btn" id="rcdone">Done</button></div></div>`;
+  bg.innerHTML=`<div class="modal rc-modal"><h2>🏁 Pick your racer</h2><div class="rc-grid">${RACERS.map(([k,n,c])=>`<button class="rc${racerOf(p)===k?' on':''}" data-r="${k}" style="--rc:${c}"><img src="art/racing/${k==='blue'?'hero.webp':'hero-'+k+'.webp'}" alt=""><b>${n}</b></button>`).join('')}</div><h2 style="margin-top:14px">🎙️ Pick your voice</h2><div class="rc-voices">${VOICES.map(([k,n,g])=>`<button class="rcv${voiceOf(p)===k?' on':''}" data-v="${k}"><b>${n}</b><small>${g==='boy'?'Boy voice':'Girl voice'} · tap to hear</small></button>`).join('')}</div><div class="row"><button class="btn" id="rcdone">Done</button></div></div>`;
   document.body.appendChild(bg);
   bg.querySelectorAll('.rc').forEach(b=>b.onclick=()=>{p.racer=b.dataset.r;savePlayer(p);bg.querySelectorAll('.rc').forEach(x=>x.classList.toggle('on',x===b));speak(b.querySelector('b').textContent+'!');});
+  bg.querySelectorAll('.rcv').forEach(b=>b.onclick=()=>{p.voice=b.dataset.v;savePlayer(p);bg.querySelectorAll('.rcv').forEach(x=>x.classList.toggle('on',x===b));if(!voSpeak('Let’s race! Pick a game!',p.voice))voLoad(p.voice);});
   bg.querySelector('#rcdone').onclick=()=>{bg.remove();after&&after();};}
 const hasArt=(id,kind)=>!!(ART[AK(id)]&&ART[AK(id)].includes(kind));
 function artSlot(id,kind){return hasArt(id,kind)?`<img class="art" data-src="art/${AK(id)}/${kind}" alt="">`:'';}
@@ -1267,7 +1276,7 @@ function renderHome(){
     <div class="kids">${cards}<button class="kid add" id="addp"><span class="kav">➕</span><span class="kname">Add player</span><span class="kstats">Ages 3 and up</span></button></div>
     <div class="foot">${readToggle()}<button class="pill" id="parents">👪 Parent corner</button>${syncPill()}<span class="pill" style="opacity:.6">v${APP_VERSION}${document.body.classList.contains('lite')?' · lite':''}</span></div>`;
   const ub=$('#upd');if(ub)ub.onclick=()=>applyUpdate(updateReady);
-  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p){showErr(new Error('player not found'),'tap');return;}TM.length=0;tm('tap');try{toast('Opening '+p.name+'…');}catch(e){}try{speak('Let’s race! Pick a game!');}catch(e){}tm('speak');try{renderMenu(p.id);}catch(e){showErr(e,'menu');}tm('show');if(/debug=1/.test(location.search))showTimes();});
+  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p){showErr(new Error('player not found'),'tap');return;}TM.length=0;tm('tap');viewPlayer=p.id;try{toast('Opening '+p.name+'…');}catch(e){}try{speak('Let’s race! Pick a game!');}catch(e){}tm('speak');try{renderMenu(p.id);}catch(e){showErr(e,'menu');}tm('show');if(/debug=1/.test(location.search))showTimes();});
   $('#addp').onclick=()=>playerModal();$('#parents').onclick=renderParents;bindToggle();
 }
 function playerModal(){
@@ -1573,13 +1582,13 @@ function renderParents(){
       <div class="row" style="justify-content:flex-start"><button class="btn small" id="chk">Check for updates</button><button class="btn small ghost" id="wn">🎁 What’s new</button></div>
       <div class="tip" id="chkmsg"></div></div>
     <div class="pcard"><h2 style="margin:0 0 6px">🔊 Voice</h2>
-      <div class="opts" id="vstyle"><button class="opt${S.settings.voiceStyle!=='adult'?' on':''}" data-s="kid">🧒 Kid voice</button><button class="opt${S.settings.voiceStyle==='adult'?' on':''}" data-s="adult">🧑 Grown-up voice</button></div>
-      ${vs.length?`<label class="lb" for="vname">Which voice</label><select id="vname" style="width:100%;font-family:inherit;font-size:17px;padding:10px;border-radius:12px;border:3px solid #E5DFF7;background:#fff;min-height:44px">
+      <div class="tip">🎙️ Each kid picks their racing voice (Jett or Fena) under <b>Change racer</b>. Long sentences, like stories, use the backup voice below.</div>
+      ${vs.length?`<label class="lb" for="vname">Backup voice</label><select id="vname" style="width:100%;font-family:inherit;font-size:17px;padding:10px;border-radius:12px;border:3px solid #E5DFF7;background:#fff;min-height:44px">
         <option value="">Automatic (best voice)</option>${vs.filter(v=>voiceScore(v)>-100).sort((a,b)=>voiceScore(b)-voiceScore(a)).map(v=>`<option value="${esc(v.name)}"${v.name===S.settings.voiceName?' selected':''}>${isNatural(v)?'⭐ ':''}${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>`:''}
       ${vs.some(isNatural)?'':'<div class="tip">💡 For a much more natural voice on iPad or iPhone: Settings → Accessibility → Spoken Content → Voices → English → tap <b>Ava</b> or <b>Zoe</b> → download <b>Premium</b>. Then come back here and pick it (it shows a ⭐).</div>'}
       <label class="lb">Speed</label>
       <div class="opts" id="vspeed">${[['xslow','🐢 Extra slow'],['slow','🐌 Slow'],['normal','🐇 Normal']].map(([k,l])=>`<button class="opt${S.settings.speed===k?' on':''}" data-k="${k}">${l}</button>`).join('')}</div>
-      <div class="row" style="justify-content:flex-start"><button class="btn small" id="vtest">▶ Test voice</button></div></div>
+      <div class="row" style="justify-content:flex-start"><button class="btn small" id="vtest">▶ Test voice</button></div><div class="tip" style="opacity:.75">Kid voices by ElevenLabs.</div></div>
     <div class="pcard"><h2 style="margin:0 0 6px">🔔 Sound effects</h2><div class="opts" id="sfx"><button class="opt${S.settings.sfx?' on':''}" data-v="1">On</button><button class="opt${!S.settings.sfx?' on':''}" data-v="0">Off</button></div><div class="tip">Each Academy theme has its own right-answer sound.</div></div>
     <div class="pcard"><h2 style="margin:0 0 6px">🎤 Read out loud first</h2>
       <div class="opts" id="rfirst"><button class="opt${S.settings.readFirst?' on':''}" data-v="1">On</button><button class="opt${!S.settings.readFirst?' on':''}" data-v="0">Off</button></div>
