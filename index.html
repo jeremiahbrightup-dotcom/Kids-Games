@@ -328,6 +328,7 @@ body.rhome .kid.add{background:rgba(15,23,42,.72);border-color:#22D3EE}body.rhom
 .rc img{height:200px;width:100%;object-fit:contain}.rc b{font-size:15px}
 .rc.on{border-color:#FACC15;box-shadow:0 0 0 3px #FACC15}
 @media(max-width:600px){.rc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rc img{height:150px}}
+#rcs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}@media(max-width:480px){#rcs{grid-template-columns:repeat(2,minmax(0,1fr))}}.opt.rcf{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;width:auto;margin:0}.opt.rcf img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--rc)}.opt.rcf span{font-size:12px;font-weight:700;line-height:1.1}
 /* lite mode for older iPads: no moving effects, no shadows/filters */
 body.lite *,body.lite *::before,body.lite *::after{animation:none!important;transition:none!important;box-shadow:none!important;filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body.lite .confetti,body.lite .fl{display:none!important}
@@ -338,8 +339,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.5';
+const APP_VERSION='4.6';
 const WHATS_NEW=[
+  {v:'4.6',items:[['🏁','Pick your racer when you add a new player']]},
   {v:'4.5',items:[['🏁','Pick your racer! 4 racers to choose from, boys and girls']]},
   {v:'4.4',items:[['🏎️','Racing Academy loads much faster']]},
   {v:'4.3',items:[['🔄','The app now updates itself when you open it']]},
@@ -1238,19 +1240,19 @@ function renderHome(){
   $('#addp').onclick=()=>playerModal();$('#parents').onclick=renderParents;bindToggle();
 }
 function playerModal(){
-  let age=6,av=pick(AVATARS.slice(0,8));
+  let age=6,av=pick(AVATARS.slice(0,8)),rc='blue';
   const bg=document.createElement('div');bg.className='modal-bg';
   bg.innerHTML=`<div class="modal"><h2>New player</h2>
     <label class="lb" for="pname">Name</label><input id="pname" maxlength="16" placeholder="Name" autocomplete="off">
     <label class="lb">Age</label><div class="opts" id="ages">${[3,4,5,6,7,8,9,10,11,12,13].map(a=>`<button class="opt${a===age?' on':''}" data-a="${a}">${a===13?'13+':a}</button>`).join('')}</div>
-    <label class="lb">Pick a buddy</label><div class="opts" id="avs">${AVATARS.map(a=>`<button class="opt av${a===av?' on':''}" data-v="${a}">${a}</button>`).join('')}</div>
+    <label class="lb">Pick your racer</label><div class="opts" id="rcs">${RACERS.map(([k,n,c])=>`<button class="opt rcf${k===rc?' on':''}" data-r="${k}" style="--rc:${c}"><img src="art/racing/${k==='blue'?'head.webp':'head-'+k+'.webp'}" alt=""><span>${n}</span></button>`).join('')}</div>
     <div class="row"><button class="btn ghost" id="cancel">Cancel</button><button class="btn" id="saveP">Save</button></div></div>`;
   document.body.appendChild(bg);
   bg.querySelectorAll('#ages .opt').forEach(b=>b.onclick=()=>{age=+b.dataset.a;bg.querySelectorAll('#ages .opt').forEach(x=>x.classList.toggle('on',x===b));});
-  bg.querySelectorAll('#avs .opt').forEach(b=>b.onclick=()=>{av=b.dataset.v;bg.querySelectorAll('#avs .opt').forEach(x=>x.classList.toggle('on',x===b));});
+  bg.querySelectorAll('#rcs .opt').forEach(b=>b.onclick=()=>{rc=b.dataset.r;bg.querySelectorAll('#rcs .opt').forEach(x=>x.classList.toggle('on',x===b));});
   bg.querySelector('#cancel').onclick=()=>bg.remove();
   bg.querySelector('#saveP').onclick=()=>{const n=bg.querySelector('#pname').value.trim();if(!n){bg.querySelector('#pname').focus();return;}
-    const p={id:'p'+Date.now(),name:n.slice(0,16),age,avatar:av,theme:'ac_racing',games:{},stickers:[],days:[]};S.players.push(p);savePlayer(p);bg.remove();renderHome();racerModal(p.id,renderHome);};
+    const p={id:'p'+Date.now(),name:n.slice(0,16),age,avatar:av,theme:'ac_racing',racer:rc,games:{},stickers:[],days:[]};S.players.push(p);savePlayer(p);bg.remove();renderHome();};
   setTimeout(()=>bg.querySelector('#pname').focus(),50);
 }
 function renderMenu(pid){
