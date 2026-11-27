@@ -203,6 +203,7 @@ th{color:var(--muted);font-weight:500}
 .foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;margin-top:28px}
 @media(max-width:480px){.mascot{width:76px;height:76px;right:8px;top:12px}.hero{min-height:280px}.kid{min-height:232px}.kav{width:84px;height:84px;font-size:50px}}
 @media(prefers-reduced-motion:reduce){.fl,.mascot,.kav{animation:none}}
+.fl,.mascot,.kav{animation-iteration-count:2}.hero,.kid{-webkit-mask-image:-webkit-radial-gradient(white,black);isolation:isolate}
 /* ===== academy ===== */
 #app:has(.ac){max-width:1280px;padding-top:10px}
 img.scn{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}#tbg img.scn{position:absolute;inset:0}
@@ -315,8 +316,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.0';
+const APP_VERSION='4.1';
 const WHATS_NEW=[
+  {v:'4.1',items:[['⚡','The home screen is much faster on iPad and iPhone']]},
   {v:'4.0',items:[['🔊','The screen shows first, then the voice talks']]},
   {v:'3.9',items:[['🏆','Rewards now keeps your theme picture and has the menu to go back']]},
   {v:'3.8',items:[['🐢','Older iPads get a lighter, faster look automatically']]},
@@ -1196,7 +1198,7 @@ function renderHome(){
     <div class="kids">${cards}<button class="kid add" id="addp"><span class="kav">➕</span><span class="kname">Add player</span><span class="kstats">Ages 3 and up</span></button></div>
     <div class="foot">${readToggle()}<button class="pill" id="parents">👪 Parent corner</button>${syncPill()}<span class="pill" style="opacity:.6">v${APP_VERSION}${document.body.classList.contains('lite')?' · lite':''}</span></div>`;
   const ub=$('#upd');if(ub)ub.onclick=()=>applyUpdate(updateReady);
-  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p){showErr(new Error('player not found'),'tap');return;}TM.length=0;tm('tap');try{toast('Opening '+p.name+'…');}catch(e){}try{speak(`Hi ${p.name}! Pick a game.`);}catch(e){}tm('speak');try{renderMenu(p.id);}catch(e){showErr(e,'menu');}tm('show');showTimes();});
+  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p){showErr(new Error('player not found'),'tap');return;}TM.length=0;tm('tap');try{toast('Opening '+p.name+'…');}catch(e){}try{speak(`Hi ${p.name}! Pick a game.`);}catch(e){}tm('speak');try{renderMenu(p.id);}catch(e){showErr(e,'menu');}tm('show');if(/debug=1/.test(location.search))showTimes();});
   $('#addp').onclick=()=>playerModal();$('#parents').onclick=renderParents;bindToggle();
 }
 function playerModal(){
