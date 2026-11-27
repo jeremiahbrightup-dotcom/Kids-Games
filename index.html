@@ -205,6 +205,7 @@ th{color:var(--muted);font-weight:500}
 @media(prefers-reduced-motion:reduce){.fl,.mascot,.kav{animation:none}}
 /* ===== academy ===== */
 #app:has(.ac){max-width:1280px;padding-top:10px}
+img.scn{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}#tbg img.scn{position:absolute;inset:0}
 #tbg img.art.on{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 img.art{display:none}img.art.on{display:block;width:100%;height:100%;object-fit:contain}.has-art>.drawn{display:none}
 .ac{color:#fff;padding-bottom:110px;font-family:'Fredoka',system-ui,sans-serif}
@@ -308,8 +309,9 @@ img.art{display:none}img.art.on{display:block;width:100%;height:100%;object-fit:
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='3.4';
+const APP_VERSION='3.5';
 const WHATS_NEW=[
+  {v:'3.5',items:[['⚡','Much faster on iPhone and iPad']]},
   {v:'3.4',items:[['🛠️','Fix: tapping a player always opens their games']]},
   {v:'3.3',items:[['⚡','The app opens faster'],['📱','Fixes for phones and iPads']]},
   {v:'3.2',items:[['📱','Your racer looks right when the iPad is held up and down'],['⚡','The home screen runs smoother']]},
@@ -385,6 +387,11 @@ function soccerField(){
    <g fill="none" stroke="#fff" stroke-width="4" opacity=".9"><rect x="22" y="334" width="356" height="470"/><line x1="22" y1="560" x2="378" y2="560"/><circle cx="200" cy="560" r="62"/><rect x="110" y="690" width="180" height="120"/></g>
    <text x="200" y="584" font-size="44" text-anchor="middle">⚽</text><text x="200" y="810" font-size="130" text-anchor="middle">🥅</text>`;
 }
+const _scnCache=new Map();
+function sceneImg(t){let svg=sceneSVG(t);if(!svg)return '';
+  if(_scnCache.has(t.id))return _scnCache.get(t.id);
+  svg=svg.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ');
+  const h=`<img class="scn" alt="" decoding="async" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}">`;_scnCache.set(t.id,h);return h;}
 function sceneSVG(t){
   if(t.academy)return SCENES[AK(t.id)]();
   if(!t.ground)return '';const k='s'+(++sceneN);
@@ -401,7 +408,7 @@ function sceneSVG(t){
 }
 function setTheme(id){
   const t=themeOf(id);TH=t;const el=document.getElementById('tbg');
-  if(el){el.style.background=t.ground?t.sky[1]:t.sky[0];el.innerHTML=sceneSVG(t)+(t.academy?artSlot(t.id,'bg.webp'):'');if(t.academy)loadArt();}
+  if(el){el.style.background=t.ground?t.sky[1]:t.sky[0];el.innerHTML=sceneImg(t)+(t.academy?artSlot(t.id,'bg.webp'):'');if(t.academy)loadArt();}
   document.body.classList.toggle('dk',t.dk);document.body.classList.toggle('themed',!!t.ground);
   const r=document.documentElement.style;r.setProperty('--purple',t.acc);r.setProperty('--rank',t.acc);r.setProperty('--tf',t.font);
 }
@@ -409,7 +416,7 @@ function themeModal(pid,after){
   const p=getPlayer(pid);if(!p)return;
   const bg=document.createElement('div');bg.className='modal-bg';
   bg.innerHTML=`<div class="modal" style="max-width:640px"><h2>🎨 Pick ${esc(p.name)}’s theme</h2>
-    <div class="themes">${THEMES.map(t=>`<button class="th${(p.theme||'classic')===t.id?' on':''}" data-t="${t.id}" style="background:${t.sky[0]}"><span class="thbg">${sceneSVG(t)}</span><span class="te">${t.emoji}</span><span class="tn">${t.name}</span></button>`).join('')}</div>
+    <div class="themes">${THEMES.map(t=>`<button class="th${(p.theme||'classic')===t.id?' on':''}" data-t="${t.id}" style="background:${t.sky[0]}"><span class="thbg">${sceneImg(t)}</span><span class="te">${t.emoji}</span><span class="tn">${t.name}</span></button>`).join('')}</div>
     <div class="row"><button class="btn" id="thdone">Done</button></div></div>`;
   document.body.appendChild(bg);
   bg.querySelectorAll('.th').forEach(b=>b.onclick=()=>{p.theme=b.dataset.t;bg.querySelectorAll('.th').forEach(x=>x.classList.toggle('on',x===b));
@@ -1111,7 +1118,7 @@ function renderThemePicker(pid,back){const p=getPlayer(pid);if(!p)return renderH
   $('#app').innerHTML=`<div class="tp"><div class="topbar"><button class="btn ghost small" id="tpback">← Back</button></div>
    <h1 class="tp-h">Choose your Academy</h1><p class="sub">${esc(p.name)}, pick a world. You can change it any time. Your stars and levels stay the same.</p>
    <div class="tp-grid">${AC_IDS.map(id=>`<button class="tp-card ${cur0===id?'on':''}" data-t="${id}"><span class="tp-bg">${SCENES[AK(id)]()}</span><span class="tp-hero">${heroSVGfull(p,id)}</span><span class="tp-logo">${logoSVG(id)}</span>${cur0===id?'<span class="tp-sel">✓ Selected</span>':''}</button>`).join('')}</div>
-   <h2 style="margin-top:26px">More themes</h2><div class="themes">${THEMES.filter(t=>!t.academy).map(t=>`<button class="th${cur0===t.id?' on':''}" data-t="${t.id}" style="background:${t.sky[0]}"><span class="thbg">${sceneSVG(t)}</span><span class="te">${t.emoji}</span><span class="tn">${t.name}</span></button>`).join('')}</div></div>`;
+   <h2 style="margin-top:26px">More themes</h2><div class="themes">${THEMES.filter(t=>!t.academy).map(t=>`<button class="th${cur0===t.id?' on':''}" data-t="${t.id}" style="background:${t.sky[0]}"><span class="thbg">${sceneImg(t)}</span><span class="te">${t.emoji}</span><span class="tn">${t.name}</span></button>`).join('')}</div></div>`;
   const done=()=>back?back():renderMenu(pid);
   $('#tpback').onclick=done;
   document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{p.theme=b.dataset.t;savePlayer(p);const t=themeOf(p.theme);speak(t.name+'!',true);
@@ -1140,7 +1147,7 @@ function renderHome(){
   view='home';cur=null;setTheme('classic');
   const cards=S.players.map(p=>{const t=themeOf(p.theme),st=totalStars(p),rk=rankOf(st),sk=streakOf(p);
     return `<button class="kid" data-id="${esc(p.id)}" style="--k:${t.acc}">
-      <span class="kbg">${t.ground?sceneSVG(t):''}</span>
+      <span class="kbg">${t.ground?sceneImg(t):''}</span>
       <span class="kav">${esc(p.avatar)}</span>
       <span class="kname">${esc(p.name)}</span>
       <span class="krank">${rk.emoji} ${esc(t.ranks[rk.i]||rk.name)}</span>
