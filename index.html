@@ -303,6 +303,8 @@ img.art{display:none}img.art.on{display:block;width:100%;height:100%;object-fit:
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+.ac-rew .badge,.ac-rew .stk{background:rgba(15,23,42,.82);color:#fff;border:2px solid color-mix(in srgb,var(--ac) 55%,#fff)}
+.ac-rew .stk.off{color:rgba(255,255,255,.45)}.ac-rew .bh{color:#CBD5E1}.ac-rew .badge.locked{opacity:.55}
 /* lite mode for older iPads: no moving effects, no shadows/filters */
 body.lite *,body.lite *::before,body.lite *::after{animation:none!important;transition:none!important;box-shadow:none!important;filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body.lite .confetti,body.lite .fl{display:none!important}
@@ -313,8 +315,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='3.8';
+const APP_VERSION='3.9';
 const WHATS_NEW=[
+  {v:'3.9',items:[['🏆','Rewards now keeps your theme picture and has the menu to go back']]},
   {v:'3.8',items:[['🐢','Older iPads get a lighter, faster look automatically']]},
   {v:'3.7',items:[['⏱️','A timer to find what makes opening slow']]},
   {v:'3.6',items:[['🔢','The version number now shows at the bottom of the home screen']]},
@@ -1450,6 +1453,18 @@ function renderResult(){
 function renderRewards(pid){
   const p=getPlayer(pid);if(!p)return renderHome();
   view='rewards';viewPlayer=pid;cur=null;setTheme(p.theme);const st=totalStars(p),rk=rankOf(st),bl=badgeList(p),got=bl.filter(b=>b.got),mine=new Set(p.stickers||[]);
+  if(isAcad(p.theme)){const id=p.theme,a=ACAD[id],ranks=a.ranks.split('|');
+    acFrame(p,id,`<div class="ac-page ac-rew">
+     <h2 class="ac-h">🏆 ${esc(p.name)}’s Rewards</h2>
+     <div class="ac-panel"><h3>${esc(ranks[rk.i]||rk.name)}</h3><div class="ac-goal-t">${rk.next?`${rk.toGo} more ${a.coin} to reach <b>${esc(ranks[rk.i+1]||rk.nextName)}</b>!`:'You reached the top rank!'}</div><div class="ac-bar"><i style="width:${rk.pct}%"></i></div></div>
+     <h2 class="ac-h">📒 Sticker book · ${mine.size} of ${STICKERS.length}</h2>
+     <div class="stickers">${STICKERS.map(s=>mine.has(s)?`<div class="stk">${s}</div>`:'<div class="stk off">?</div>').join('')}</div>
+     <h2 class="ac-h">Badges · ${got.length} of ${bl.length}</h2>
+     <div class="grid badges">${bl.slice().sort((x,y)=>y.got-x.got).map(b=>`<div class="badge${b.got?'':' locked'}"><div class="be">${b.emoji}</div><div class="bn">${esc(b.name)}</div><div class="bh">${esc(b.how)}</div></div>`).join('')}</div>
+     <h2 class="ac-h">Ranks</h2>
+     <div class="grid badges">${ranks.map((r,i)=>`<div class="badge${i>rk.i?' locked':''}"><div class="be">${RANKS[i]?RANKS[i][1]:'⭐'}</div><div class="bn">${esc(r)}</div><div class="bh">${RANKS[i]?RANKS[i][0]:''} ${a.coin}</div></div>`).join('')}</div>
+    </div>`,'rewards');
+    speak(`${p.name}, you have ${mine.size} stickers and ${got.length} badges!`);return;}
   $('#app').innerHTML=`
     <div class="topbar"><button class="btn ghost small" id="back">← Games</button><span class="pill">${coin()} ${st}</span></div>
     <h1>🏆 ${esc(p.name)}’s Rewards</h1>
