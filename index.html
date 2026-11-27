@@ -318,6 +318,16 @@ body.rhome #app>h2.who{background:none;box-shadow:none;padding:0;color:#fff;text
 body.rhome #app>.sub{background:none;box-shadow:none;color:#E2E8F0}
 body.rhome .kid.add{background:rgba(15,23,42,.72);border-color:#22D3EE}body.rhome .kid.add .kname{color:#22D3EE}
 @media(max-width:600px){.rhero{min-height:270px}.rh-logo{width:56%}.rh-car{max-width:44%}}
+
+.rc-btn{margin-top:8px;background:linear-gradient(#22D3EE,#0891B2);color:#fff;font-weight:700;font-size:17px;border-radius:999px;padding:8px 18px;border:2px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+#achero{cursor:pointer}
+.rc-modal{max-width:720px;background:#0F172A;color:#fff;border:3px solid #22D3EE}
+.rc-modal h2{font-family:'Luckiest Guy','Fredoka',sans-serif;letter-spacing:.5px;margin:0 0 12px}
+.rc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.rc{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:18px;background:linear-gradient(color-mix(in srgb,var(--rc) 45%,#1E293B),#0F172A);border:3px solid rgba(255,255,255,.25);color:#fff}
+.rc img{height:200px;width:100%;object-fit:contain}.rc b{font-size:15px}
+.rc.on{border-color:#FACC15;box-shadow:0 0 0 3px #FACC15}
+@media(max-width:600px){.rc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rc img{height:150px}}
 /* lite mode for older iPads: no moving effects, no shadows/filters */
 body.lite *,body.lite *::before,body.lite *::after{animation:none!important;transition:none!important;box-shadow:none!important;filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body.lite .confetti,body.lite .fl{display:none!important}
@@ -328,8 +338,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.4';
+const APP_VERSION='4.5';
 const WHATS_NEW=[
+  {v:'4.5',items:[['🏁','Pick your racer! 4 racers to choose from, boys and girls']]},
   {v:'4.4',items:[['🏎️','Racing Academy loads much faster']]},
   {v:'4.3',items:[['🔄','The app now updates itself when you open it']]},
   {v:'4.2',items:[['🏎️','Racing Academy! A brand-new racing front screen and app icon']]},
@@ -1059,7 +1070,7 @@ function heroFor(p,id,idx){const a=ACAD[id],it=a.items[idx==null?gearIdx(p,id):i
   if(k==='dino')return HERO.dino(it[1]);if(k==='dragon')return HERO.dragon(it[1]);
   return HERO[k](it[1],it[2]);}
 function heroSVGfull(p,id,idx){return `<svg viewBox="0 -10 240 340" width="100%" height="100%" aria-hidden="true">${heroFor(p,id,idx)}</svg>`;}
-function heroHead(p,id){return `<svg viewBox="40 0 130 140" width="100%" height="100%" aria-hidden="true">${heroFor(p,id)}</svg>`;}
+function heroHead(p,id){if(AK(id)==='racing')return `<img src="art/racing/${racerFile(p,'head')}" alt="" style="width:100%;height:100%;object-fit:cover">`;return `<svg viewBox="40 0 130 140" width="100%" height="100%" aria-hidden="true">${heroFor(p,id)}</svg>`;}
 function itemPreview(p,id,i){const it=ACAD[id].items[i];
   const k=AK(id);if(k==='racing')return carSVG(it[1],it[2]);if(k==='space')return rocketSVG(it[1]);
   if(k==='dino')return `<svg viewBox="-130 -80 260 190" width="100%" height="100%">${dinoBuddy(it[1])}</svg>`;
@@ -1068,6 +1079,14 @@ function itemPreview(p,id,i){const it=ACAD[id].items[i];
 
 /* art override: files in art/<id>/ replace the drawn pieces when present */
 const ART={racing:['bg.webp','hero.webp']};
+const RACERS=[['blue','Blue Bolt','#2563EB'],['pink','Pink Rocket','#EC4899'],['purple','Purple Lightning','#7C3AED'],['red','Red Blaze','#DC2626']];
+const racerOf=p=>RACERS.some(r=>r[0]===p.racer)?p.racer:'blue';
+const racerFile=(p,kind)=>{const r=racerOf(p);return r==='blue'?(kind==='head'?'head.webp':'hero.webp'):(kind==='head'?'head-'+r+'.webp':'hero-'+r+'.webp');};
+function racerModal(pid,after){const p=getPlayer(pid);if(!p)return;const bg=document.createElement('div');bg.className='modal-bg';
+  bg.innerHTML=`<div class="modal rc-modal"><h2>🏁 Pick your racer</h2><div class="rc-grid">${RACERS.map(([k,n,c])=>`<button class="rc${racerOf(p)===k?' on':''}" data-r="${k}" style="--rc:${c}"><img src="art/racing/${k==='blue'?'hero.webp':'hero-'+k+'.webp'}" alt=""><b>${n}</b></button>`).join('')}</div><div class="row"><button class="btn" id="rcdone">Done</button></div></div>`;
+  document.body.appendChild(bg);
+  bg.querySelectorAll('.rc').forEach(b=>b.onclick=()=>{p.racer=b.dataset.r;savePlayer(p);bg.querySelectorAll('.rc').forEach(x=>x.classList.toggle('on',x===b));speak(b.querySelector('b').textContent+'!');});
+  bg.querySelector('#rcdone').onclick=()=>{bg.remove();after&&after();};}
 const hasArt=(id,kind)=>!!(ART[AK(id)]&&ART[AK(id)].includes(kind));
 function artSlot(id,kind){return hasArt(id,kind)?`<img class="art" data-src="art/${AK(id)}/${kind}" alt="">`:'';}
 function loadArt(){document.querySelectorAll('img.art[data-src]').forEach(img=>{const src=img.dataset.src;img.removeAttribute('data-src');
@@ -1134,7 +1153,7 @@ function renderAcademy(pid){const p=getPlayer(pid);if(!p)return renderHome();con
   const nxt=rk.next?`<div class="ac-goal-t">Next: <b>${esc(ranks[rk.i+1])}</b></div><div class="ac-bar"><i style="width:${rk.pct}%"></i><em>${rk.toGo} more ${a.coin} to go</em></div>`:`<div class="ac-goal-t">You reached <b>${esc(ranks[rk.i])}</b>, the top rank!</div>`;
   const goalArt=AK(id)==='ninja'?`<div class="belts"><i style="background:${BELT[rk.i]}"></i>›<i style="background:${BELT[Math.min(9,rk.i+1)]}"></i></div>`:`<div class="ac-goal-art">${itemPreview(p,id,gearIdx(p,id))}</div>`;
   acFrame(p,id,`<div class="ac-home">
-   <div class="ac-left"><div class="ac-logo">${artSlot(id,'logo.png')}<div class="drawn">${logoSVG(id)}</div></div><div class="ac-hero">${artSlot(id,'hero.webp')}<div class="drawn">${heroSVGfull(p,id)}</div></div></div>
+   <div class="ac-left"><div class="ac-logo">${artSlot(id,'logo.png')}<div class="drawn">${logoSVG(id)}</div></div><div class="ac-hero" id="achero">${AK(id)==='racing'?`<img class="art" data-src="art/racing/${racerFile(p,'hero')}" alt="">`:artSlot(id,'hero.webp')}<div class="drawn">${heroSVGfull(p,id)}</div></div>${AK(id)==='racing'?'<button class="rc-btn" id="rcpick">🏁 Change racer</button>':''}</div>
    <div class="ac-right">
     <div class="ac-subs">${tiles}</div>
     <div class="ac-panels"><div class="ac-panel"><h3>${a.mission}</h3><ul class="ac-mis">${mis}</ul></div>
@@ -1145,6 +1164,7 @@ function renderAcademy(pid){const p=getPlayer(pid);if(!p)return renderHome();con
    </div></div>`,'home');
   document.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>renderSubject(pid,b.dataset.sub));
   $('#accol').onclick=()=>renderCollection(pid);$('#acach').onclick=()=>renderRewards(pid);
+  const rp=$('#rcpick');if(rp){rp.onclick=()=>racerModal(pid,()=>renderAcademy(pid));$('#achero').onclick=rp.onclick;}
 }
 function renderSubject(pid,sub){const p=getPlayer(pid);if(!p)return renderHome();const id=p.theme,a=ACAD[id];view='menu';viewPlayer=pid;cur=null;
   const list=sub==='all'?SUBJECTS:SUBJECTS.filter(s=>s.id===sub);
@@ -1193,7 +1213,7 @@ function renderHome(){
   const cards=S.players.map(p=>{const t=themeOf(p.theme),st=totalStars(p),rk=rankOf(st),sk=streakOf(p);
     return `<button class="kid" data-id="${esc(p.id)}" style="--k:${t.acc}">
       <span class="kbg">${t.ground?sceneImg(t):''}</span>
-      <span class="kav">${esc(p.avatar)}</span>
+      <span class="kav">${AK(p.theme)==='racing'?`<img src="art/racing/${racerFile(p,'head')}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:esc(p.avatar)}</span>
       <span class="kname">${esc(p.name)}</span>
       <span class="krank">${rk.emoji} ${esc(t.ranks[rk.i]||rk.name)}</span>
       <span class="kstats">${t.coin} ${st}${sk>1?` · 🔥 ${sk} days`:''} · 📒 ${(p.stickers||[]).length}</span>
@@ -1230,7 +1250,7 @@ function playerModal(){
   bg.querySelectorAll('#avs .opt').forEach(b=>b.onclick=()=>{av=b.dataset.v;bg.querySelectorAll('#avs .opt').forEach(x=>x.classList.toggle('on',x===b));});
   bg.querySelector('#cancel').onclick=()=>bg.remove();
   bg.querySelector('#saveP').onclick=()=>{const n=bg.querySelector('#pname').value.trim();if(!n){bg.querySelector('#pname').focus();return;}
-    const p={id:'p'+Date.now(),name:n.slice(0,16),age,avatar:av,theme:'ac_racing',games:{},stickers:[],days:[]};S.players.push(p);savePlayer(p);bg.remove();renderHome();};
+    const p={id:'p'+Date.now(),name:n.slice(0,16),age,avatar:av,theme:'ac_racing',games:{},stickers:[],days:[]};S.players.push(p);savePlayer(p);bg.remove();renderHome();racerModal(p.id,renderHome);};
   setTimeout(()=>bg.querySelector('#pname').focus(),50);
 }
 function renderMenu(pid){
