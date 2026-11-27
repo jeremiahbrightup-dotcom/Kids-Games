@@ -173,6 +173,36 @@ th{color:var(--muted);font-weight:500}
   .visual{font-size:36px}.eq{font-size:38px}.bigword{font-size:44px}.choice svg{width:60px;height:60px}.story{font-size:26px}
   .slot{width:44px;height:56px;font-size:30px}.tile{width:58px;height:64px;font-size:32px}.bubble{width:66px;height:66px;font-size:24px}
 }
+
+/* home */
+.hero{position:relative;border-radius:30px;overflow:hidden;min-height:300px;box-shadow:var(--shadow);margin-top:4px}
+.hbg{position:absolute;inset:0}.hbg svg{display:block}
+.hin{position:relative;padding:26px 20px 70px;display:grid;justify-items:start;gap:8px}
+.mascot{position:absolute;right:14px;top:18px;width:96px;height:96px;animation:bob 2.6s ease-in-out infinite}
+.logo{font-family:'Luckiest Guy','Fredoka',sans-serif;font-size:clamp(40px,10vw,64px);line-height:.95;margin:0;color:#fff;letter-spacing:1px;max-width:78%;
+  -webkit-text-stroke:2px #1E293B;paint-order:stroke fill;text-shadow:0 5px 0 rgba(30,41,59,.35)}
+.tag{margin:2px 0 6px;font-size:20px;font-weight:700;color:#0C4A6E;background:rgba(255,255,255,.85);padding:4px 12px;border-radius:999px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips span{background:#fff;border-radius:999px;padding:6px 12px;font-weight:600;font-size:15px;box-shadow:0 3px 0 rgba(43,35,64,.12)}
+.fl{position:absolute;font-size:30px;opacity:.85;animation:float 5s ease-in-out infinite;pointer-events:none}
+@keyframes float{50%{transform:translateY(-14px) rotate(8deg)}}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-6deg)}}
+.who{font-family:'Luckiest Guy','Fredoka',sans-serif;font-size:30px;margin:22px 0 12px;letter-spacing:.5px}
+.kids{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+.kid{position:relative;overflow:hidden;border-radius:26px;min-height:250px;padding:16px 10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;
+  background:linear-gradient(#FEF3C7,#FDE68A);box-shadow:0 6px 0 color-mix(in srgb,var(--k,#7C5CFF) 55%,#000),0 12px 24px rgba(43,35,64,.15);transition:transform .1s}
+.kid:active{transform:translateY(3px) scale(.98)}
+.kbg{position:absolute;inset:0}.kbg svg{display:block}
+.kid>span:not(.kbg){position:relative}
+.kav{font-size:58px;line-height:1;width:96px;height:96px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 6px 16px rgba(0,0,0,.2);border:4px solid var(--k,#7C5CFF);margin-bottom:auto;margin-top:6px;animation:bob 3s ease-in-out infinite}
+.kname{font-family:'Luckiest Guy','Fredoka',sans-serif;font-size:28px;color:#fff;-webkit-text-stroke:1.5px #1E293B;paint-order:stroke fill;text-shadow:0 3px 0 rgba(0,0,0,.3);letter-spacing:.5px}
+.krank,.kstats{background:rgba(255,255,255,.92);border-radius:999px;padding:3px 10px;font-size:14px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kgo{margin-top:6px;background:var(--k,#7C5CFF);color:#fff;border-radius:999px;padding:8px 22px;font-size:18px;font-weight:700;box-shadow:0 4px 0 color-mix(in srgb,var(--k,#7C5CFF) 60%,#000)}
+.kid.add{background:rgba(255,255,255,.7);border:4px dashed #C4B5FD;box-shadow:none;justify-content:center}
+.kid.add .kav{border-color:#C4B5FD;margin:0 0 8px;animation:none;font-size:44px}
+.kid.add .kname{color:#7C5CFF;-webkit-text-stroke:0;text-shadow:none}
+.foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;margin-top:28px}
+@media(max-width:480px){.mascot{width:76px;height:76px;right:8px;top:12px}.hero{min-height:280px}.kid{min-height:232px}.kav{width:84px;height:84px;font-size:50px}}
+@media(prefers-reduced-motion:reduce){.fl,.mascot,.kav{animation:none}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -181,8 +211,9 @@ th{color:var(--muted);font-weight:500}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='2.5';
+const APP_VERSION='2.6';
 const WHATS_NEW=[
+  {v:'2.6',items:[['🌟','A brand-new home screen with a big colorful welcome'],['🏅','Each player card shows your theme, rank, stars and streak']]},
   {v:'2.5',items:[['⚽','10 new sports stickers to win: soccer, basketball, football and more!'],['📒','The sticker book now has 70 stickers']]},
   {v:'2.4',items:[['🎨','Pick your own theme! Tap 🎨 Theme after you pick your name.'],['⚽','27 themes: soccer, space, dinosaurs, superheroes, pop stars, unicorns and more'],['🌟','Each theme changes the picture, colors, game icons, cheers and rank names']]},
   {v:'2.2',items:[['➕','Add & Subtract problems are stacked, like at school']]},
@@ -307,7 +338,7 @@ let cloud=null,sync='local';
 const pending=new Map(),inflight=new Set();let flushT=null;
 function setSync(s){sync=s;const el=document.getElementById('sync');if(el)el.outerHTML=syncPill();}
 function syncPill(){
-  const m={cloud:['ok','☁️ Saved to your account'],saving:['ok','☁️ Saving…'],connecting:['','☁️ Connecting…'],slow:['warn','☁️ Can’t reach the cloud yet'],local:['warn','📱 Saved on this device only']}[sync]||['',''];
+  const m={cloud:['ok','☁️ Saved to your account'],saving:['ok','☁️ Saving…'],connecting:['','☁️ Connecting…'],slow:['warn','☁️ Can’t reach the cloud yet'],local:['ok','💾 Progress saved on this device']}[sync]||['',''];
   return `<span class="pill sync ${m[0]}" id="sync">${m[1]}</span>`;
 }
 function queue(id,data){saveLocal();if(!cloud)return;pending.set(id,data);clearTimeout(flushT);flushT=setTimeout(flush,700);}
@@ -656,17 +687,50 @@ function badgeList(p){
 const readToggle=()=>`<button class="pill" id="rt">${S.settings.readAloud?'🔊 Read aloud: On':'🔇 Read aloud: Off'}</button>`;
 function bindToggle(){const b=$('#rt');if(b)b.onclick=()=>{S.settings.readAloud=!S.settings.readAloud;saveSettings();b.outerHTML=readToggle();bindToggle();if(S.settings.readAloud)speak('Read aloud is on.');};}
 
+function streakOf(p){const d=new Set(p.days||[]);let n=0;const t=new Date();
+  if(!d.has(today())){t.setDate(t.getDate()-1);}
+  for(;;){const k=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');if(!d.has(k))break;n++;t.setDate(t.getDate()-1);}return n;}
+function heroSVG(){
+  let clouds='';[[90,70,1],[520,50,.8],[690,110,.6]].forEach(([x,y,k])=>clouds+=`<g transform="translate(${x} ${y}) scale(${k})" fill="#fff" opacity=".9"><ellipse cx="0" cy="0" rx="46" ry="22"/><ellipse cx="34" cy="-14" rx="32" ry="24"/><ellipse cx="66" cy="2" rx="38" ry="20"/></g>`);
+  return `<svg viewBox="0 0 800 360" preserveAspectRatio="xMidYMax slice" width="100%" height="100%" aria-hidden="true">
+   <defs><linearGradient id="hsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38BDF8"/><stop offset="1" stop-color="#BAE6FD"/></linearGradient></defs>
+   <rect width="800" height="360" fill="url(#hsky)"/>
+   <g fill="none" stroke-width="16" opacity=".55" transform="translate(600 330)">${['#EF4444','#F97316','#FACC15','#22C55E','#3B82F6','#8B5CF6'].map((c,i)=>`<circle r="${230-i*16}" stroke="${c}"/>`).join('')}</g>
+   ${clouds}
+   <path d="M0 290 Q160 230 330 275 T800 250 V360 H0Z" fill="#4ADE80"/>
+   <path d="M0 320 Q200 285 420 318 T800 300 V360 H0Z" fill="#22C55E"/></svg>`;
+}
+const MASCOT=`<svg viewBox="0 0 120 120" aria-hidden="true"><polygon points="60,6 75,42 114,44 84,68 95,108 60,85 25,108 36,68 6,44 45,42" fill="#FFD93B" stroke="#2B2340" stroke-width="5" stroke-linejoin="round"/><circle cx="48" cy="58" r="5" fill="#2B2340"/><circle cx="72" cy="58" r="5" fill="#2B2340"/><path d="M47 71 Q60 82 73 71" fill="none" stroke="#2B2340" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="70" r="5" fill="#FB7185" opacity=".6"/><circle cx="80" cy="70" r="5" fill="#FB7185" opacity=".6"/></svg>`;
+function greet(){const h=new Date().getHours();return h<12?'Good morning':h<17?'Good afternoon':'Good evening';}
 function renderHome(){
-  view='home';cur=null;setTheme(S.settings.lastTheme);
-  const cards=S.players.map(p=>`<button class="player" data-id="${esc(p.id)}"><div class="av">${esc(p.avatar)}</div><div class="nm">${esc(p.name)}</div><div class="meta">Age ${p.age} · ${themeOf(p.theme).coin} ${totalStars(p)}</div></button>`).join('');
+  view='home';cur=null;setTheme('classic');
+  const cards=S.players.map(p=>{const t=themeOf(p.theme),st=totalStars(p),rk=rankOf(st),sk=streakOf(p);
+    return `<button class="kid" data-id="${esc(p.id)}" style="--k:${t.acc}">
+      <span class="kbg">${t.ground?sceneSVG(t):''}</span>
+      <span class="kav">${esc(p.avatar)}</span>
+      <span class="kname">${esc(p.name)}</span>
+      <span class="krank">${rk.emoji} ${esc(t.ranks[rk.i]||rk.name)}</span>
+      <span class="kstats">${t.coin} ${st}${sk>1?` · 🔥 ${sk} days`:''} · 📒 ${(p.stickers||[]).length}</span>
+      <span class="kgo">▶ Play</span></button>`;}).join('');
+  const floaters=['🦄','⚽','🚀','🦖','📚','🔢','🎨','🏆'];
   $('#app').innerHTML=`
-    <div class="topbar"><h1>🌟 Kids Learning Games</h1>${readToggle()}</div>
-    <p class="sub">${S.players.length?'Who’s playing today?':'Add a player to start. Each kid gets their own levels, stars and stickers.'}</p>
-    <div class="grid players">${cards}<button class="player add" id="addp"><div class="av">➕</div><div class="nm">Add player</div></button></div>
-    ${updateReady?`<div class="row"><button class="btn" id="upd" style="background:#16A34A;box-shadow:0 5px 0 #15803D">🎁 New update ready! Tap to get it</button></div>`:''}
-    <div class="row" style="margin-top:26px;align-items:center"><button class="btn ghost small" id="parents">👪 Parent corner</button>${syncPill()}</div>`;
+    <section class="hero">
+      <div class="hbg">${heroSVG()}</div>
+      ${floaters.map((e,i)=>`<span class="fl" style="left:${8+i*11.5}%;top:${[14,58,22,64,10,48,30,70][i]}%;animation-delay:${i*-.7}s">${e}</span>`).join('')}
+      <div class="hin">
+        <div class="mascot">${MASCOT}</div>
+        <h1 class="logo"><span style="color:#FDE047">Kids</span> <span>Learning</span> <span style="color:#F9A8D4">Games</span></h1>
+        <p class="tag">Play. Learn. Level up!</p>
+        <div class="chips"><span>🎮 ${GAMES.length} games</span><span>🎨 ${THEMES.length-1} themes</span><span>📒 ${STICKERS.length} stickers</span></div>
+      </div>
+    </section>
+    ${updateReady?`<div class="row" style="margin-top:14px"><button class="btn" id="upd" style="background:#16A34A;box-shadow:0 5px 0 #15803D">🎁 New update ready! Tap to get it</button></div>`:''}
+    <h2 class="who">${S.players.length?greet()+'! Who’s playing?':'Let’s get started!'}</h2>
+    ${S.players.length?'':'<p class="sub">Add a player. Each kid gets their own levels, theme, stars and stickers.</p>'}
+    <div class="kids">${cards}<button class="kid add" id="addp"><span class="kav">➕</span><span class="kname">Add player</span><span class="kstats">Ages 3 and up</span></button></div>
+    <div class="foot">${readToggle()}<button class="pill" id="parents">👪 Parent corner</button>${syncPill()}</div>`;
   const ub=$('#upd');if(ub)ub.onclick=()=>applyUpdate(updateReady);
-  document.querySelectorAll('.player[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p)return;speak(`Hi ${p.name}! Pick a game.`);renderMenu(p.id);});
+  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p)return;speak(`Hi ${p.name}! Pick a game.`);renderMenu(p.id);});
   $('#addp').onclick=()=>playerModal();$('#parents').onclick=renderParents;bindToggle();
 }
 function playerModal(){
