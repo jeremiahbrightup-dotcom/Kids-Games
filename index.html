@@ -344,8 +344,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.12';
+const APP_VERSION='4.13';
 const WHATS_NEW=[
+  {v:'4.13',items:[['🎙️','Kid voice now plays from the very first tap']]},
   {v:'4.12',items:[['📖','Jett and Fena now read every word in the reading games']]},
   {v:'4.11',items:[['🎙️','New kid voices! Pick Jett or Fena under Change racer']]},
   {v:'4.10',items:[['🎉','Cheers sound more excited']]},
@@ -621,10 +622,13 @@ const VO={sets:{},loading:{},src:null};
 const voNorm=t=>String(t).toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim();
 function voiceOf(p){if(p&&VOICES.some(v=>v[0]===p.voice))return p.voice;const r=p&&p.racer;return (r==='pink'||r==='purple')?'fena':'jett';}
 function activeVoice(){try{return voiceOf(getPlayer(viewPlayer)||(cur&&cur.p)||S.players[0]);}catch(e){return 'jett';}}
-function voLoad(id){id=id||activeVoice();if(VO.loading[id]||VO.sets[id])return;VO.loading[id]=1;let map=null;
-  fetch('audio/voice-'+id+'.json').then(r=>r.ok?r.json():null).then(m=>{if(!m||!m.clips)return null;map=m.clips;return fetch('audio/'+m.file).then(r=>r.arrayBuffer());})
+function voLoad(id){id=id||activeVoice();if(VO.sets[id])return Promise.resolve(VO.sets[id]);if(VO.loading[id])return VO.loading[id];let map=null;
+  VO.loading[id]=fetch('audio/voice-'+id+'.json').then(r=>r.ok?r.json():null).then(m=>{if(!m||!m.clips)return null;map=m.clips;return fetch('audio/'+m.file).then(r=>r.arrayBuffer());})
    .then(ab=>{if(!ab)return;actx=actx||new (window.AudioContext||window.webkitAudioContext)();
-     return new Promise((ok,no)=>actx.decodeAudioData(ab,ok,no));}).then(b=>{if(b&&map)VO.sets[id]={map,buf:b};}).catch(()=>{}).finally(()=>{VO.loading[id]=0;});}
+     return new Promise((ok,no)=>actx.decodeAudioData(ab,ok,no));}).then(b=>{if(b&&map)VO.sets[id]={map,buf:b};return VO.sets[id]||null;}).catch(()=>null).finally(()=>{VO.loading[id]=null;});
+  return VO.loading[id];}
+/* start loading every player's kid voice as soon as the app opens, so the first words are never the robot voice */
+function voPreload(){try{const ids=new Set((S.players||[]).map(voiceOf));if(!ids.size)ids.add('jett');ids.forEach(id=>voLoad(id));}catch(e){}}
 function voTokens(t){const out=[];voNorm(t).split(' ').filter(Boolean).forEach(w=>{const n=/^\d+$/.test(w)?+w:NaN;
   if(n>20&&n<100&&n%10){out.push(String(n-n%10),String(n%10));}else out.push(w);});return out;}
 function voPlan(t,map){const w=voTokens(t),out=[];let i=0;
@@ -635,9 +639,15 @@ function voSpeak(t,id){try{id=id||activeVoice();const set=VO.sets[id];if(!set){v
   voStop();try{speechSynthesis.cancel();}catch(e){}if(actx.state==='suspended')actx.resume();
   let at=actx.currentTime+.03;VO.src=plan.map(([a,b])=>{const s=actx.createBufferSource();s.buffer=set.buf;s.connect(actx.destination);s.start(at,a,Math.max(.05,b-a));at+=(b-a)+.07;return s;});
   return true;}catch(e){return false;}}
-function speak(t,force){
+function speak(t,force){speak.seq=(speak.seq||0)+1;
   if(!t||(!S.settings.readAloud&&!force))return;
-  if(S.settings.kidVO!==false&&voSpeak(t))return;voStop();
+  if(S.settings.kidVO!==false){if(voSpeak(t))return;
+    const id=activeVoice();if(!VO.sets[id]){const my=speak.seq=(speak.seq||0)+1;let done=false;
+      const fall=()=>{if(done||my!==speak.seq)return;done=true;devSpeak(t,force);};
+      voLoad(id).then(()=>{if(done||my!==speak.seq)return;if(voSpeak(t)){done=true;}else fall();});setTimeout(()=>{done=true;},6000);return;}}
+  devSpeak(t,force);
+}
+function devSpeak(t,force){voStop();
   if(!canSpeak()){
     if(tts){tts.speak(String(t).slice(0,1900),{voice:'airy',rate:S.settings.speed==='normal'?1:.8}).catch(()=>{});return;}
     if(force&&!warned){warned=true;toast('Voice isn’t available here. Try Safari or Chrome.');}return;}
@@ -1641,7 +1651,7 @@ function showWhatsNew(force){
   bg.querySelector('#wnok').onclick=()=>{bg.remove();speak('Let’s play!');};
 }
 
-renderHome();
+renderHome();voPreload();
 showWhatsNew(false);
 connect();
 const recheck=()=>checkUpdate().then(v=>{if(!v)return;
