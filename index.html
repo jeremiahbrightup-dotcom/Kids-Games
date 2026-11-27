@@ -309,8 +309,9 @@ img.art{display:none}img.art.on{display:block;width:100%;height:100%;object-fit:
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='3.6';
+const APP_VERSION='3.7';
 const WHATS_NEW=[
+  {v:'3.7',items:[['⏱️','A timer to find what makes opening slow']]},
   {v:'3.6',items:[['🔢','The version number now shows at the bottom of the home screen']]},
   {v:'3.5',items:[['⚡','Much faster on iPhone and iPad']]},
   {v:'3.4',items:[['🛠️','Fix: tapping a player always opens their games']]},
@@ -523,6 +524,13 @@ const pw=(e,w)=>`<div class="pw"><span class="pe">${e}</span><span>${w}</span></
 function showErr(e,where){try{const m=(e&&(e.message||e.reason&&e.reason.message))||String(e);const st=(e&&e.stack||e&&e.error&&e.error.stack||'').split('\n').slice(0,3).join(' | ');
   let b=document.getElementById('errbox');if(!b){b=document.createElement('div');b.id='errbox';b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#7F1D1D;color:#fff;font:13px/1.35 system-ui;padding:10px 12px;border-radius:12px;max-height:40vh;overflow:auto';b.onclick=()=>b.remove();document.body.appendChild(b);}
   b.textContent='Oops (v'+APP_VERSION+(where?' · '+where:'')+'): '+m+(e&&e.lineno?' @'+e.lineno+':'+e.colno:'')+(st?' — '+st:'')+'  [tap to close]';}catch(_){}}
+const TM=[];const tm=l=>{try{TM.push([l,performance.now()]);}catch(e){}};
+function showTimes(){try{let gap=0,last=performance.now();const end=last+8000;
+  const fin=()=>{const parts=[];for(let i=1;i<TM.length;i++)parts.push(TM[i][0]+' '+Math.round(TM[i][1]-TM[i-1][1]));
+    let b=document.getElementById('tmbox');if(!b){b=document.createElement('div');b.id='tmbox';b.style.cssText='position:fixed;left:8px;right:8px;top:8px;z-index:98;background:#111827;color:#A7F3D0;font:13px/1.35 ui-monospace,monospace;padding:8px 10px;border-radius:10px';b.onclick=()=>b.remove();document.body.appendChild(b);}
+    b.textContent='⏱ v'+APP_VERSION+' (ms): '+parts.join(' · ')+' · slowest frame '+Math.round(gap)+'  [tap to close]';};
+  const f=()=>{const n=performance.now();gap=Math.max(gap,n-last);last=n;if(n<end)requestAnimationFrame(f);else fin();};
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{tm('paint');last=performance.now();requestAnimationFrame(f);}));}catch(e){}}
 window.addEventListener('error',ev=>showErr(ev.error||ev,'page'));
 window.addEventListener('unhandledrejection',ev=>showErr(ev.reason||ev,'promise'));
 
@@ -1075,13 +1083,13 @@ function acTop(p,id){const a=ACAD[id],st=totalStars(p),L=levelOf(st),rk=rankOf(s
    <button class="ac-gear" id="acthm" aria-label="Change theme">${ICON.palette}</button></div>`;}
 function acNav(active){const items=[['home','Home','home'],['missions','Missions','flag'],['progress','Progress','bars'],['collection','Collection','chest'],['rewards','Rewards','trophy'],['parent','Parent Area','people']];
   return `<nav class="ac-nav">${items.map(([k,l,ic])=>`<button data-nav="${k}" class="${k===active?'on':''}">${ICON[ic]}<span>${l}</span></button>`).join('')}</nav>`;}
-function acFrame(p,id,inner,active){const a=ACAD[id];setTheme(id);
-  $('#app').innerHTML=`<div class="ac ac-${a.style}" data-ac="${id}" style="--ac:${a.acc}">${acTop(p,id)}${inner}${acNav(active)}</div>`;
+function acFrame(p,id,inner,active){tm('build');const a=ACAD[id];setTheme(id);tm('theme');
+  $('#app').innerHTML=`<div class="ac ac-${a.style}" data-ac="${id}" style="--ac:${a.acc}">${acTop(p,id)}${inner}${acNav(active)}</div>`;tm('html');
   $('#acback').onclick=renderHome;$('#acthm').onclick=()=>renderThemePicker(p.id);
   document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{const k=b.dataset.nav;
     if(k==='home')renderAcademy(p.id);else if(k==='missions')renderSubject(p.id,'all');else if(k==='progress')renderProgress(p.id);
     else if(k==='collection')renderCollection(p.id);else if(k==='rewards')renderRewards(p.id);else renderParents();});
-  loadArt();}
+  loadArt();tm('art');void document.body.offsetHeight;tm('layout');}
 function renderAcademy(pid){const p=getPlayer(pid);if(!p)return renderHome();const id=p.theme,a=ACAD[id];
   view='menu';viewPlayer=pid;cur=null;setTheme(id);if(S.settings.lastTheme!==id){S.settings.lastTheme=id;saveSettings();}
   const st=totalStars(p),rk=rankOf(st),ranks=a.ranks.split('|');daily(p);
@@ -1172,7 +1180,7 @@ function renderHome(){
     <div class="kids">${cards}<button class="kid add" id="addp"><span class="kav">➕</span><span class="kname">Add player</span><span class="kstats">Ages 3 and up</span></button></div>
     <div class="foot">${readToggle()}<button class="pill" id="parents">👪 Parent corner</button>${syncPill()}<span class="pill" style="opacity:.6">v${APP_VERSION}</span></div>`;
   const ub=$('#upd');if(ub)ub.onclick=()=>applyUpdate(updateReady);
-  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p){showErr(new Error('player not found'),'tap');return;}try{toast('Opening '+p.name+'…');}catch(e){}try{speak(`Hi ${p.name}! Pick a game.`);}catch(e){}try{renderMenu(p.id);}catch(e){showErr(e,'menu');}});
+  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p){showErr(new Error('player not found'),'tap');return;}TM.length=0;tm('tap');try{toast('Opening '+p.name+'…');}catch(e){}try{speak(`Hi ${p.name}! Pick a game.`);}catch(e){}tm('speak');try{renderMenu(p.id);}catch(e){showErr(e,'menu');}tm('show');showTimes();});
   $('#addp').onclick=()=>playerModal();$('#parents').onclick=renderParents;bindToggle();
 }
 function playerModal(){
