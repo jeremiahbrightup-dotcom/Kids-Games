@@ -344,8 +344,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.11';
+const APP_VERSION='4.12';
 const WHATS_NEW=[
+  {v:'4.12',items:[['📖','Jett and Fena now read every word in the reading games']]},
   {v:'4.11',items:[['🎙️','New kid voices! Pick Jett or Fena under Change racer']]},
   {v:'4.10',items:[['🎉','Cheers sound more excited']]},
   {v:'4.9',items:[['🗣️','Friendlier, more natural voice']]},
@@ -611,7 +612,7 @@ function pickVoice(){try{const vs=speechSynthesis.getVoices()||[];
   const chosen=S.settings.voiceName&&vs.find(v=>v.name===S.settings.voiceName);if(chosen&&voiceScore(chosen)>-100){voice=chosen;return;}
   voice=vs.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a))[0]||null;}catch(e){}}
 if(canSpeak()){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}}
-function unlockSpeech(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}voLoad();voLoad('jett');voLoad('fena');if(unlocked||!canSpeak())return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}}
+function unlockSpeech(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}voLoad();if(unlocked||!canSpeak())return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}}
 document.addEventListener('pointerdown',unlockSpeech,{once:true});
 document.addEventListener('touchstart',unlockSpeech,{once:true});
 /* ===== recorded kid voice: one sprite file + map of phrases -> [start,end] seconds; stitched with Web Audio ===== */
