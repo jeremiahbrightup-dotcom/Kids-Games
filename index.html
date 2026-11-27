@@ -328,8 +328,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.3';
+const APP_VERSION='4.4';
 const WHATS_NEW=[
+  {v:'4.4',items:[['🏎️','Racing Academy loads much faster']]},
   {v:'4.3',items:[['🔄','The app now updates itself when you open it']]},
   {v:'4.2',items:[['🏎️','Racing Academy! A brand-new racing front screen and app icon']]},
   {v:'4.1',items:[['⚡','The home screen is much faster on iPad and iPhone']]},
@@ -436,7 +437,7 @@ function sceneSVG(t){
 function setTheme(id){
   document.body.classList.remove('rhome');
   const t=themeOf(id);TH=t;const el=document.getElementById('tbg');
-  if(el){el.style.background=t.ground?t.sky[1]:t.sky[0];el.innerHTML=sceneImg(t)+(t.academy?artSlot(t.id,'bg.webp'):'');if(t.academy)loadArt();}
+  if(el){el.style.background=t.ground?t.sky[1]:t.sky[0];el.innerHTML=(t.academy&&hasArt(t.id,'bg.webp'))?artSlot(t.id,'bg.webp'):sceneImg(t);if(t.academy)loadArt();}
   document.body.classList.toggle('dk',t.dk);document.body.classList.toggle('themed',!!t.ground);
   const r=document.documentElement.style;r.setProperty('--purple',t.acc);r.setProperty('--rank',t.acc);r.setProperty('--tf',t.font);
 }
@@ -885,21 +886,21 @@ block(){const a=uid(),r=rnd(4);let hills='',trees='',cl='';
   const castle=`<g transform="translate(840 250)"><rect x="0" y="60" width="200" height="140" fill="#9CA3AF"/>${[0,1,2,3,4].map(i=>`<rect x="${i*44}" y="44" width="24" height="20" fill="#9CA3AF"/>`).join('')}<rect x="-30" y="0" width="60" height="200" fill="#6B7280"/><rect x="170" y="0" width="60" height="200" fill="#6B7280"/><rect x="80" y="130" width="40" height="70" fill="#422006"/><rect x="-10" y="-30" width="4" height="30" fill="#78350F"/><rect x="-6" y="-30" width="26" height="16" fill="#DC2626"/><rect x="195" y="-30" width="4" height="30" fill="#78350F"/><rect x="199" y="-30" width="26" height="16" fill="#DC2626"/></g>`;
   return svgWrap('0 0 1200 800',`<defs>${lin(a,[[0,'#38BDF8'],[1,'#BAE6FD']])}</defs><rect width="1200" height="800" fill="url(#${a})"/>${cl}${far}${castle}<rect x="380" y="380" width="30" height="200" fill="#60A5FA" opacity=".85"/>${hills}${trees}`);},
 racing(){const a=uid(),gl=uid(),r=rnd(9);
-  return svgWrap('0 0 1200 800',`<defs>${lin(a,[[0,'#1E1B4B'],[.5,'#7E22CE'],[.8,'#DB2777'],[1,'#F59E0B']])}<filter id="${gl}"><feGaussianBlur stdDeviation="6"/></filter></defs>
+  return svgWrap('0 0 1200 800',`<defs>${lin(a,[[0,'#1E1B4B'],[.5,'#7E22CE'],[.8,'#DB2777'],[1,'#F59E0B']])}</defs>
   <rect width="1200" height="800" fill="url(#${a})"/>${starsField(40,1200,250,8,1.4)}
   <circle cx="600" cy="470" r="150" fill="#FDBA74" opacity=".85"/>
   <path d="M0 470 L150 360 L300 440 L470 330 L640 450 L820 350 L1000 440 L1200 360 V800 H0Z" fill="#3B0764"/>
   <path d="M0 520 H1200 V800 H0Z" fill="#1E1B4B"/>
   <g stroke-linecap="round" fill="none"><path d="M-50 800 C300 640 450 560 600 520 S900 470 1250 500" stroke="#0F172A" stroke-width="150"/>
-  <path d="M-50 800 C300 640 450 560 600 520 S900 470 1250 500" stroke="#22D3EE" stroke-width="160" opacity=".5" filter="url(#${gl})" stroke-dasharray="1 0"/>
+  <path d="M-50 800 C300 640 450 560 600 520 S900 470 1250 500" stroke="#22D3EE" stroke-width="160" opacity=".5" stroke-dasharray="1 0"/>
   <path d="M-50 800 C300 640 450 560 600 520 S900 470 1250 500" stroke="#111827" stroke-width="140"/>
   <path d="M-50 800 C300 640 450 560 600 520 S900 470 1250 500" stroke="#FDE047" stroke-width="5" stroke-dasharray="36 30"/>
-  <path d="M-50 870 C300 710 450 630 600 590 S900 540 1250 570" stroke="#EC4899" stroke-width="10" filter="url(#${gl})"/><path d="M-50 870 C300 710 450 630 600 590 S900 540 1250 570" stroke="#F9A8D4" stroke-width="4"/></g>
+  <path d="M-50 870 C300 710 450 630 600 590 S900 540 1250 570" stroke="#EC4899" stroke-width="10"/><path d="M-50 870 C300 710 450 630 600 590 S900 540 1250 570" stroke="#F9A8D4" stroke-width="4"/></g>
   ${[[240,500],[960,440]].map(([x,y])=>`<g transform="translate(${x} ${y})"><rect x="0" y="0" width="5" height="90" fill="#E5E7EB"/><g transform="translate(5 0)">${[0,1,2,3].map(i=>[0,1,2].map(j=>`<rect x="${i*12}" y="${j*12}" width="12" height="12" fill="${(i+j)%2?'#111':'#fff'}"/>`).join('')).join('')}</g></g>`).join('')}
   <g transform="translate(600 640)">${[0,1,2,3,4,5,6,7,8,9].map(i=>`<rect x="${-150+i*30}" y="0" width="30" height="16" fill="${i%2?'#111':'#fff'}"/><rect x="${-150+i*30}" y="16" width="30" height="16" fill="${i%2?'#fff':'#111'}"/>`).join('')}</g>`);},
 space(){const a=uid(),n=uid(),p=uid(),e=uid(),bl=uid(),r=rnd(21);let craters='';for(let i=0;i<9;i++)craters+=`<ellipse cx="${(r()*1200).toFixed(0)}" cy="${(650+r()*130).toFixed(0)}" rx="${(30+r()*50).toFixed(0)}" ry="${(8+r()*12).toFixed(0)}" fill="#475569" opacity=".6"/>`;
-  return svgWrap('0 0 1200 800',`<defs>${rad(a,[[0,'#312E81'],[1,'#030712']],.6,.3,.9)}${rad(n,[[0,'#DB2777',.55],[1,'#DB2777',0]])}${rad(p,[[0,'#FDBA74'],[.6,'#EA580C'],[1,'#7C2D12']],.35,.35,.7)}${rad(e,[[0,'#7DD3FC'],[.55,'#2563EB'],[1,'#1E3A8A']],.35,.35,.7)}<filter id="${bl}"><feGaussianBlur stdDeviation="30"/></filter></defs>
-  <rect width="1200" height="800" fill="url(#${a})"/><ellipse cx="300" cy="250" rx="320" ry="140" fill="url(#${n})" filter="url(#${bl})"/><ellipse cx="900" cy="180" rx="260" ry="110" fill="#7C3AED" opacity=".35" filter="url(#${bl})"/>
+  return svgWrap('0 0 1200 800',`<defs>${rad(a,[[0,'#312E81'],[1,'#030712']],.6,.3,.9)}${rad(n,[[0,'#DB2777',.55],[1,'#DB2777',0]])}${rad(p,[[0,'#FDBA74'],[.6,'#EA580C'],[1,'#7C2D12']],.35,.35,.7)}${rad(e,[[0,'#7DD3FC'],[.55,'#2563EB'],[1,'#1E3A8A']],.35,.35,.7)}</defs>
+  <rect width="1200" height="800" fill="url(#${a})"/><ellipse cx="300" cy="250" rx="320" ry="140" fill="url(#${n})"/><ellipse cx="900" cy="180" rx="260" ry="110" fill="#7C3AED" opacity=".35"/>
   ${starsField(160,1200,640,13,2.4)}
   <circle cx="220" cy="210" r="90" fill="url(#${p})"/><g transform="translate(1000 230) rotate(-18)"><ellipse rx="190" ry="34" fill="none" stroke="#FDE68A" stroke-width="12" opacity=".8"/><circle r="100" fill="url(#${e})"/><path d="M-60 -40 Q-20 -60 10 -30 Q40 0 0 20 Q-50 30 -60 -40Z M30 30 Q60 20 70 50 Q40 80 20 60Z" fill="#4ADE80" opacity=".85"/><path d="M-190 0 A190 34 0 0 0 190 0" fill="none" stroke="#FDE68A" stroke-width="12" opacity=".8"/></g>
   <path d="M0 600 Q300 560 600 590 T1200 570 V800 H0Z" fill="#94A3B8"/><path d="M0 660 Q400 630 800 670 T1200 650 V800 H0Z" fill="#64748B"/>${craters}
@@ -1066,7 +1067,9 @@ function itemPreview(p,id,i){const it=ACAD[id].items[i];
   return heroSVGfull(p,id,i);}
 
 /* art override: files in art/<id>/ replace the drawn pieces when present */
-function artSlot(id,kind){return `<img class="art" data-src="art/${AK(id)}/${kind}" alt="">`;}
+const ART={racing:['bg.webp','hero.webp']};
+const hasArt=(id,kind)=>!!(ART[AK(id)]&&ART[AK(id)].includes(kind));
+function artSlot(id,kind){return hasArt(id,kind)?`<img class="art" data-src="art/${AK(id)}/${kind}" alt="">`:'';}
 function loadArt(){document.querySelectorAll('img.art[data-src]').forEach(img=>{const src=img.dataset.src;img.removeAttribute('data-src');
   img.onload=()=>{img.classList.add('on');img.parentElement&&img.parentElement.classList.add('has-art');};img.onerror=()=>img.remove();img.src=src;});}
 
