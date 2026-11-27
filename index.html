@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kids Learning Games</title>
+<title>Racing Academy</title>
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-180.png">
-<meta name="apple-mobile-web-app-title" content="Learning Games">
+<meta name="apple-mobile-web-app-title" content="Racing Academy">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Bungee&family=Fredoka:wght@400;500;600;700&family=Henny+Penny&family=Luckiest+Guy&family=Orbitron:wght@700&family=Pirata+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
@@ -306,6 +306,18 @@ img.art{display:none}img.art.on{display:block;width:100%;height:100%;object-fit:
 
 .ac-rew .badge,.ac-rew .stk{background:rgba(15,23,42,.82);color:#fff;border:2px solid color-mix(in srgb,var(--ac) 55%,#fff)}
 .ac-rew .stk.off{color:rgba(255,255,255,.45)}.ac-rew .bh{color:#CBD5E1}.ac-rew .badge.locked{opacity:.55}
+
+/* racing front screen */
+.rhero{min-height:340px;background:#0F172A;border:3px solid #22D3EE;box-shadow:0 0 22px rgba(34,211,238,.45),0 10px 24px rgba(0,0,0,.4)}
+.rh-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rh-logo{position:absolute;left:3%;top:6%;width:min(48%,380px);aspect-ratio:360/210}
+.rh-car{position:absolute;right:4%;bottom:-2%;height:108%;max-width:40%;object-fit:contain;object-position:bottom}
+.rh-in{position:absolute;left:4%;bottom:7%;display:grid;gap:8px;justify-items:start}
+.rhero .tag{color:#0F172A}
+body.rhome #app>h2.who{background:none;box-shadow:none;padding:0;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.5);-webkit-text-stroke:1px rgba(0,0,0,.4);paint-order:stroke fill}
+body.rhome #app>.sub{background:none;box-shadow:none;color:#E2E8F0}
+body.rhome .kid.add{background:rgba(15,23,42,.72);border-color:#22D3EE}body.rhome .kid.add .kname{color:#22D3EE}
+@media(max-width:600px){.rhero{min-height:270px}.rh-logo{width:56%}.rh-car{max-width:44%}}
 /* lite mode for older iPads: no moving effects, no shadows/filters */
 body.lite *,body.lite *::before,body.lite *::after{animation:none!important;transition:none!important;box-shadow:none!important;filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body.lite .confetti,body.lite .fl{display:none!important}
@@ -316,8 +328,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.1';
+const APP_VERSION='4.2';
 const WHATS_NEW=[
+  {v:'4.2',items:[['🏎️','Racing Academy! A brand-new racing front screen and app icon']]},
   {v:'4.1',items:[['⚡','The home screen is much faster on iPad and iPhone']]},
   {v:'4.0',items:[['🔊','The screen shows first, then the voice talks']]},
   {v:'3.9',items:[['🏆','Rewards now keeps your theme picture and has the menu to go back']]},
@@ -420,6 +433,7 @@ function sceneSVG(t){
    <rect width="400" height="800" fill="url(#${k}s)"/>${stars}${spr}${body}</svg>`;
 }
 function setTheme(id){
+  document.body.classList.remove('rhome');
   const t=themeOf(id);TH=t;const el=document.getElementById('tbg');
   if(el){el.style.background=t.ground?t.sky[1]:t.sky[0];el.innerHTML=sceneImg(t)+(t.academy?artSlot(t.id,'bg.webp'):'');if(t.academy)loadArt();}
   document.body.classList.toggle('dk',t.dk);document.body.classList.toggle('themed',!!t.ground);
@@ -1171,7 +1185,7 @@ function heroSVG(){
 const MASCOT=`<svg viewBox="0 0 120 120" aria-hidden="true"><polygon points="60,6 75,42 114,44 84,68 95,108 60,85 25,108 36,68 6,44 45,42" fill="#FFD93B" stroke="#2B2340" stroke-width="5" stroke-linejoin="round"/><circle cx="48" cy="58" r="5" fill="#2B2340"/><circle cx="72" cy="58" r="5" fill="#2B2340"/><path d="M47 71 Q60 82 73 71" fill="none" stroke="#2B2340" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="70" r="5" fill="#FB7185" opacity=".6"/><circle cx="80" cy="70" r="5" fill="#FB7185" opacity=".6"/></svg>`;
 function greet(){const h=new Date().getHours();return h<12?'Good morning':h<17?'Good afternoon':'Good evening';}
 function renderHome(){
-  view='home';cur=null;setTheme('classic');
+  view='home';cur=null;setTheme('ac_racing');document.body.classList.add('rhome');
   const cards=S.players.map(p=>{const t=themeOf(p.theme),st=totalStars(p),rk=rankOf(st),sk=streakOf(p);
     return `<button class="kid" data-id="${esc(p.id)}" style="--k:${t.acc}">
       <span class="kbg">${t.ground?sceneImg(t):''}</span>
@@ -1180,16 +1194,14 @@ function renderHome(){
       <span class="krank">${rk.emoji} ${esc(t.ranks[rk.i]||rk.name)}</span>
       <span class="kstats">${t.coin} ${st}${sk>1?` · 🔥 ${sk} days`:''} · 📒 ${(p.stickers||[]).length}</span>
       <span class="kgo">▶ Play</span></button>`;}).join('');
-  const floaters=['🦄','⚽','🚀','🦖','📚','🔢','🎨','🏆'];
   $('#app').innerHTML=`
-    <section class="hero">
-      <div class="hbg">${heroSVG()}</div>
-      ${floaters.map((e,i)=>`<span class="fl" style="left:${8+i*11.5}%;top:${[14,58,22,64,10,48,30,70][i]}%;animation-delay:${i*-.7}s">${e}</span>`).join('')}
-      <div class="hin">
-        <div class="mascot">${MASCOT}</div>
-        <h1 class="logo"><span style="color:#FDE047">Kids</span> <span>Learning</span> <span style="color:#F9A8D4">Games</span></h1>
-        <p class="tag">Play. Learn. Level up!</p>
-        <div class="chips"><span>🎮 ${GAMES.length} games</span><span>🎨 ${THEMES.length-1} themes</span><span>📒 ${STICKERS.length} stickers</span></div>
+    <section class="hero rhero">
+      <img class="rh-bg" src="art/racing/bg.webp" alt="">
+      <div class="rh-logo">${logoSVG('ac_racing')}</div>
+      <img class="rh-car" src="art/racing/hero.webp" alt="">
+      <div class="rh-in">
+        <p class="tag">Learn. Race. Win! 🏁</p>
+        <div class="chips"><span>🎮 ${GAMES.length} games</span><span>🏆 ${STICKERS.length} stickers</span></div>
       </div>
     </section>
     ${updateReady?`<div class="row" style="margin-top:14px"><button class="btn" id="upd" style="background:#16A34A;box-shadow:0 5px 0 #15803D">🎁 New update ready! Tap to get it</button></div>`:''}
@@ -1214,7 +1226,7 @@ function playerModal(){
   bg.querySelectorAll('#avs .opt').forEach(b=>b.onclick=()=>{av=b.dataset.v;bg.querySelectorAll('#avs .opt').forEach(x=>x.classList.toggle('on',x===b));});
   bg.querySelector('#cancel').onclick=()=>bg.remove();
   bg.querySelector('#saveP').onclick=()=>{const n=bg.querySelector('#pname').value.trim();if(!n){bg.querySelector('#pname').focus();return;}
-    const p={id:'p'+Date.now(),name:n.slice(0,16),age,avatar:av,games:{},stickers:[],days:[]};S.players.push(p);savePlayer(p);bg.remove();renderHome();};
+    const p={id:'p'+Date.now(),name:n.slice(0,16),age,avatar:av,theme:'ac_racing',games:{},stickers:[],days:[]};S.players.push(p);savePlayer(p);bg.remove();renderHome();};
   setTimeout(()=>bg.querySelector('#pname').focus(),50);
 }
 function renderMenu(pid){
