@@ -211,8 +211,9 @@ th{color:var(--muted);font-weight:500}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='2.6';
+const APP_VERSION='2.7';
 const WHATS_NEW=[
+  {v:'2.7',items:[['🔄','Updates now show up as soon as you open the app']]},
   {v:'2.6',items:[['🌟','A brand-new home screen with a big colorful welcome'],['🏅','Each player card shows your theme, rank, stars and streak']]},
   {v:'2.5',items:[['⚽','10 new sports stickers to win: soccer, basketball, football and more!'],['📒','The sticker book now has 70 stickers']]},
   {v:'2.4',items:[['🎨','Pick your own theme! Tap 🎨 Theme after you pick your name.'],['⚽','27 themes: soccer, space, dinosaurs, superheroes, pop stars, unicorns and more'],['🌟','Each theme changes the picture, colors, game icons, cheers and rank names']]},
@@ -1079,7 +1080,10 @@ function showWhatsNew(force){
 renderHome();
 showWhatsNew(false);
 connect();
-checkUpdate().then(v=>{if(v&&view==='home'&&!document.querySelector('.modal-bg'))renderHome();});
+const recheck=()=>checkUpdate().then(v=>{if(v&&view==='home'&&!document.querySelector('.modal-bg'))renderHome();});
+recheck();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)recheck();});
+setInterval(()=>{if(!document.hidden)recheck();},5*60*1000);
 try{if(window.claude&&typeof claude.use==='function'){
   claude.use('dictation').then(d=>attachDict(d)).catch(()=>{});
   if(!canSpeak())claude.use('tts').then(t=>{tts=t;}).catch(()=>{});
