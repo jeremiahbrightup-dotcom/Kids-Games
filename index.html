@@ -315,8 +315,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='3.9';
+const APP_VERSION='4.0';
 const WHATS_NEW=[
+  {v:'4.0',items:[['🔊','The screen shows first, then the voice talks']]},
   {v:'3.9',items:[['🏆','Rewards now keeps your theme picture and has the menu to go back']]},
   {v:'3.8',items:[['🐢','Older iPads get a lighter, faster look automatically']]},
   {v:'3.7',items:[['⏱️','A timer to find what makes opening slow']]},
@@ -571,12 +572,12 @@ function speak(t,force){
   if(!canSpeak()){
     if(tts){tts.speak(String(t).slice(0,1900),{voice:'airy',rate:S.settings.speed==='normal'?1:.8}).catch(()=>{});return;}
     if(force&&!warned){warned=true;toast('Voice isn’t available here. Try Safari or Chrome.');}return;}
-  try{const ss=speechSynthesis;if(!voice)pickVoice();
+  setTimeout(()=>{try{const ss=speechSynthesis;if(!voice)pickVoice();
     const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(voice)u.voice=voice;const kid=S.settings.voiceStyle!=='adult';
     u.rate={xslow:.55,slow:.7,normal:.9}[S.settings.speed]||.7;u.pitch=kid?1.7:1.05;u.volume=1;
     u.onerror=ev=>{if(force&&!warned&&ev&&ev.error!=='interrupted'&&ev.error!=='canceled'){warned=true;toast('Sound didn’t play. Check the iPad isn’t on silent.');}};
     if(ss.speaking||ss.pending){ss.cancel();setTimeout(()=>{try{ss.speak(u);}catch(e){}},80);}else{try{ss.resume();}catch(e){}ss.speak(u);}
-  }catch(e){}
+  }catch(e){}},30);
 }
 const hush=()=>{try{speechSynthesis.cancel();}catch(e){}try{tts&&tts.stop();}catch(e){}};
 const PRAISE=['Great job!','You got it!','Awesome!','Super smart!','Way to go!','Yes! Nice work!','You are a star!','Brilliant!'];
