@@ -328,8 +328,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.2';
+const APP_VERSION='4.3';
 const WHATS_NEW=[
+  {v:'4.3',items:[['🔄','The app now updates itself when you open it']]},
   {v:'4.2',items:[['🏎️','Racing Academy! A brand-new racing front screen and app icon']]},
   {v:'4.1',items:[['⚡','The home screen is much faster on iPad and iPhone']]},
   {v:'4.0',items:[['🔊','The screen shows first, then the voice talks']]},
@@ -1576,7 +1577,10 @@ function showWhatsNew(force){
 renderHome();
 showWhatsNew(false);
 connect();
-const recheck=()=>checkUpdate().then(v=>{if(v&&view==='home'&&!document.querySelector('.modal-bg'))renderHome();});
+const recheck=()=>checkUpdate().then(v=>{if(!v)return;
+  let tried=null;try{tried=sessionStorage.getItem('klg-upd');}catch(e){}
+  if(tried!==v&&!cur){try{sessionStorage.setItem('klg-upd',v);}catch(e){}applyUpdate(v);return;}
+  if(view==='home'&&!document.querySelector('.modal-bg'))renderHome();});
 recheck();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)recheck();});
 setInterval(()=>{if(!document.hidden)recheck();},5*60*1000);
