@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="icon-180.png">
 <meta name="apple-mobile-web-app-title" content="Learning Games">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Bungee&family=Fredoka:wght@400;500;600;700&family=Henny+Penny&family=Luckiest+Guy&family=Orbitron:wght@700&family=Pirata+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Bungee&family=Fredoka:wght@400;500;600;700&family=Henny+Penny&family=Luckiest+Guy&family=Orbitron:wght@700&family=Pirata+One&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 /* VOICE: bright, warm, playful; big targets for small hands
    IDEA: a toy box of games; each game is a chunky colored tile
@@ -308,8 +308,9 @@ img.art{display:none}img.art.on{display:block;width:100%;height:100%;object-fit:
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='3.2';
+const APP_VERSION='3.3';
 const WHATS_NEW=[
+  {v:'3.3',items:[['⚡','The app opens faster'],['📱','Fixes for phones and iPads']]},
   {v:'3.2',items:[['📱','Your racer looks right when the iPad is held up and down'],['⚡','The home screen runs smoother']]},
   {v:'3.1',items:[['🏎️','Racing Academy got a brand-new look: a real neon race garage and a new racer!']]},
   {v:'3.0',items:[['🏆','8 new Academy worlds: All-Star, Hero, Block Builders, Racing, Space, Dino Discovery, Ninja and Dragon Kingdom'],['🔬','New Science Lab game: animals, weather, the body, space and more'],['🎁','Unlock jerseys, cars, rockets, dinos, dragons and gear as you earn stars'],['✅','Daily missions: finish a Math, Reading and Spelling or Science game for bonus stars']]},
@@ -399,7 +400,7 @@ function sceneSVG(t){
 }
 function setTheme(id){
   const t=themeOf(id);TH=t;const el=document.getElementById('tbg');
-  if(el){el.style.background=t.ground?t.sky[1]:t.sky[0];el.innerHTML=sceneSVG(t)+(t.academy?artSlot(t.id,'bg.jpg'):'');if(t.academy)loadArt();}
+  if(el){el.style.background=t.ground?t.sky[1]:t.sky[0];el.innerHTML=sceneSVG(t)+(t.academy?artSlot(t.id,'bg.webp'):'');if(t.academy)loadArt();}
   document.body.classList.toggle('dk',t.dk);document.body.classList.toggle('themed',!!t.ground);
   const r=document.documentElement.style;r.setProperty('--purple',t.acc);r.setProperty('--rank',t.acc);r.setProperty('--tf',t.font);
 }
@@ -1073,7 +1074,7 @@ function renderAcademy(pid){const p=getPlayer(pid);if(!p)return renderHome();con
   const nxt=rk.next?`<div class="ac-goal-t">Next: <b>${esc(ranks[rk.i+1])}</b></div><div class="ac-bar"><i style="width:${rk.pct}%"></i><em>${rk.toGo} more ${a.coin} to go</em></div>`:`<div class="ac-goal-t">You reached <b>${esc(ranks[rk.i])}</b>, the top rank!</div>`;
   const goalArt=AK(id)==='ninja'?`<div class="belts"><i style="background:${BELT[rk.i]}"></i>›<i style="background:${BELT[Math.min(9,rk.i+1)]}"></i></div>`:`<div class="ac-goal-art">${itemPreview(p,id,gearIdx(p,id))}</div>`;
   acFrame(p,id,`<div class="ac-home">
-   <div class="ac-left"><div class="ac-logo">${artSlot(id,'logo.png')}<div class="drawn">${logoSVG(id)}</div></div><div class="ac-hero">${artSlot(id,'hero.png')}<div class="drawn">${heroSVGfull(p,id)}</div></div></div>
+   <div class="ac-left"><div class="ac-logo">${artSlot(id,'logo.png')}<div class="drawn">${logoSVG(id)}</div></div><div class="ac-hero">${artSlot(id,'hero.webp')}<div class="drawn">${heroSVGfull(p,id)}</div></div></div>
    <div class="ac-right">
     <div class="ac-subs">${tiles}</div>
     <div class="ac-panels"><div class="ac-panel"><h3>${a.mission}</h3><ul class="ac-mis">${mis}</ul></div>
