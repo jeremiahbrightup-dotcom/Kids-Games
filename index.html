@@ -344,8 +344,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.13';
+const APP_VERSION='4.14';
 const WHATS_NEW=[
+  {v:'4.14',items:[['🔢','Fena now says the right numbers and cheers']]},
   {v:'4.13',items:[['🎙️','Kid voice now plays from the very first tap']]},
   {v:'4.12',items:[['📖','Jett and Fena now read every word in the reading games']]},
   {v:'4.11',items:[['🎙️','New kid voices! Pick Jett or Fena under Change racer']]},
@@ -623,7 +624,7 @@ const voNorm=t=>String(t).toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0
 function voiceOf(p){if(p&&VOICES.some(v=>v[0]===p.voice))return p.voice;const r=p&&p.racer;return (r==='pink'||r==='purple')?'fena':'jett';}
 function activeVoice(){try{return voiceOf(getPlayer(viewPlayer)||(cur&&cur.p)||S.players[0]);}catch(e){return 'jett';}}
 function voLoad(id){id=id||activeVoice();if(VO.sets[id])return Promise.resolve(VO.sets[id]);if(VO.loading[id])return VO.loading[id];let map=null;
-  VO.loading[id]=fetch('audio/voice-'+id+'.json').then(r=>r.ok?r.json():null).then(m=>{if(!m||!m.clips)return null;map=m.clips;return fetch('audio/'+m.file).then(r=>r.arrayBuffer());})
+  VO.loading[id]=fetch('audio/voice-'+id+'.json?v='+APP_VERSION).then(r=>r.ok?r.json():null).then(m=>{if(!m||!m.clips)return null;map=m.clips;return fetch('audio/'+m.file+'?v='+APP_VERSION).then(r=>r.arrayBuffer());})
    .then(ab=>{if(!ab)return;actx=actx||new (window.AudioContext||window.webkitAudioContext)();
      return new Promise((ok,no)=>actx.decodeAudioData(ab,ok,no));}).then(b=>{if(b&&map)VO.sets[id]={map,buf:b};return VO.sets[id]||null;}).catch(()=>null).finally(()=>{VO.loading[id]=null;});
   return VO.loading[id];}

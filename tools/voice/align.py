@@ -5,7 +5,7 @@ def syl(t):
     n=sum(max(1,len(re.findall(r'[aeiouy]+',x))-(1 if x.endswith('e') and len(x)>3 else 0)) for x in w)
     if re.fullmatch(r"[a-z]\.?",t.strip()):n=1
     return n+0.6
-def align(f,texts,noise=-38):
+def align(f,texts,noise=-38,expl=None):
     g,dur=gaps(f,noise,0.05)
     lead=g[0][1] if g and g[0][0]<0.05 else 0.0
     trail=g[-1][0] if g and g[-1][1]>dur-0.05 else dur
@@ -14,6 +14,7 @@ def align(f,texts,noise=-38):
     e=[syl(t) for t in texts];tot=sum(e)
     speech=(trail-lead)-sum(b-a for a,b in cand)*0.5
     k=speech/tot
+    if expl: e=list(expl);k=speech/sum(e)  # expected lengths from a correctly-cut reference voice
     # points: index -1 = start(lead), cand i -> cut at gap i, end
     pts=[(lead,lead)]+cand+[(trail,trail)]
     INF=1e18

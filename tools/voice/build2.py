@@ -11,7 +11,13 @@ def build(voice,pitch=1.0,wparts=(0,1,2)):
         if os.path.exists(f): jobs.append((f,wc['W%d'%i],wc['W%d'%i]))
     clips={};t=0.0;listf=[];n=0
     for src,txt,keys in jobs:
-        segs,_=align(src,txt)
+        ref=src.replace(f'raw/{voice}-','raw/jett-')
+        if voice!='jett' and os.path.exists(ref) and '-W' not in src:
+            # use Jett's (correct) cut lengths as the guide, so pauses inside words don't shift every clip by one
+            jl=[b-a for a,b in align(ref,txt)[0]]
+            segs,_=align(src,txt,-46 if src.endswith('-B.mp3') else -38,jl)
+        else:
+            segs,_=align(src,txt)
         for key,(a,b) in zip(keys,segs):
             if key in clips: continue
             a=max(0,a-0.03);b=b+0.05;fn=f'out/{voice}_{n:04d}.wav';n+=1
