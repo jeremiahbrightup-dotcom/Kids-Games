@@ -181,12 +181,13 @@ th{color:var(--muted);font-weight:500}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='2.4';
+const APP_VERSION='2.5';
 const WHATS_NEW=[
+  {v:'2.5',items:[['⚽','10 new sports stickers to win: soccer, basketball, football and more!'],['📒','The sticker book now has 70 stickers']]},
   {v:'2.4',items:[['🎨','Pick your own theme! Tap 🎨 Theme after you pick your name.'],['⚽','27 themes: soccer, space, dinosaurs, superheroes, pop stars, unicorns and more'],['🌟','Each theme changes the picture, colors, game icons, cheers and rank names']]},
   {v:'2.2',items:[['➕','Add & Subtract problems are stacked, like at school']]},
   {v:'2.1',items:[['🎁','A “What’s new” screen like this one'],['🔄','Grown-ups can check for updates in the Parent corner']]},
-  {v:'2.0',items:[['🧱','Word Builder: spell the picture'],['🎵','Rhyme Time'],['🫧','Number Pop: pop the right bubble fast!'],['🪙','Coin Count'],['⏰','Tell the Time'],['🃏','Memory Match'],['📒','A sticker book with 60 stickers to win'],['🛠️','Fixes so games save the right way']]},
+  {v:'2.0',items:[['🧱','Word Builder: spell the picture'],['🎵','Rhyme Time'],['🫧','Number Pop: pop the right bubble fast!'],['🪙','Coin Count'],['⏰','Tell the Time'],['🃏','Memory Match'],['📒','A sticker book full of stickers to win'],['🛠️','Fixes so games save the right way']]},
 ];
 const verNum=v=>String(v).split('.').map(n=>parseInt(n)||0);
 const newer=(a,b)=>{const x=verNum(a),y=verNum(b);for(let i=0;i<Math.max(x.length,y.length);i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0);}return false;};
@@ -455,7 +456,7 @@ const RHY=[[['cat','🐱'],['hat','🎩'],['bat','🦇']],[['dog','🐶'],['frog
   [['bed','🛏️'],['sled','🛷']],[['fish','🐟'],['dish','🍽️']],[['sun','☀️'],['run','🏃']],[['bone','🦴'],['phone','📱'],['cone','🍦']],[['train','🚂'],['rain','🌧️'],['chain','⛓️']],
   [['nose','👃'],['rose','🌹']],[['kite','🪁'],['light','💡']]];
 const RHY5=[['night','light','bright'],['cake','lake','shake'],['rain','plain','brain'],['funny','bunny','sunny'],['hop','top','stop'],['jump','bump','lump'],['sing','thing','spring'],['fall','tall','wall'],['play','day','stay'],['book','look','cook'],['sand','hand','band'],['hair','fair','stair'],['snow','grow','throw'],['mice','nice','rice']];
-const STICKERS='🦄 🐉 🦖 🦕 🐙 🦈 🐬 🦋 🐝 🦉 🦜 🦩 🐢 🦔 🐼 🐨 🦒 🦓 🐘 🦘 🐧 🦦 🐳 🦁 🚀 🛸 🌈 ⚡ 🔥 🌟 🌙 🪐 ☄️ 🎸 🥁 🎨 🧩 🎯 🏆 👑 💎 🍩 🍕 🧁 🍦 🍉 🏎️ 🚂 🚁 ⛵ 🏰 🎡 🤖 👾 🧙 🦸 🥷 🐲 🌋 🏝️'.split(' ');
+const STICKERS='🦄 🐉 🦖 🦕 🐙 🦈 🐬 🦋 🐝 🦉 🦜 🦩 🐢 🦔 🐼 🐨 🦒 🦓 🐘 🦘 🐧 🦦 🐳 🦁 🚀 🛸 🌈 ⚡ 🔥 🌟 🌙 🪐 ☄️ 🎸 🥁 🎨 🧩 🎯 🏆 👑 💎 🍩 🍕 🧁 🍦 🍉 🏎️ 🚂 🚁 ⛵ 🏰 🎡 🤖 👾 🧙 🦸 🥷 🐲 🌋 🏝️ ⚽ 🥅 🏀 🏈 ⚾ 🎾 🏐 🥇 🛹 🏅'.split(' ');
 
 /* ================= question generators (level 1–5) ================= */
 function genCount(L){
