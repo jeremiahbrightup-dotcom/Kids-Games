@@ -339,8 +339,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.6';
+const APP_VERSION='4.7';
 const WHATS_NEW=[
+  {v:'4.7',items:[['🏎️','Everyone races now! The app is all Racing Academy']]},
   {v:'4.6',items:[['🏁','Pick your racer when you add a new player']]},
   {v:'4.5',items:[['🏁','Pick your racer! 4 racers to choose from, boys and girls']]},
   {v:'4.4',items:[['🏎️','Racing Academy loads much faster']]},
@@ -454,7 +455,7 @@ function setTheme(id){
   document.body.classList.toggle('dk',t.dk);document.body.classList.toggle('themed',!!t.ground);
   const r=document.documentElement.style;r.setProperty('--purple',t.acc);r.setProperty('--rank',t.acc);r.setProperty('--tf',t.font);
 }
-function themeModal(pid,after){
+function themeModal(pid,after){return racerModal(pid,after);
   const p=getPlayer(pid);if(!p)return;
   const bg=document.createElement('div');bg.className='modal-bg';
   bg.innerHTML=`<div class="modal" style="max-width:640px"><h2>🎨 Pick ${esc(p.name)}’s theme</h2>
@@ -476,7 +477,7 @@ function cleanP(p){
   const q=JSON.parse(JSON.stringify(p));
   q.name=q.name.slice(0,16);q.age=Math.min(13,Math.max(3,parseInt(q.age)||6));
   if(!AVATARS.includes(q.avatar))q.avatar='🦁';
-  if(typeof q.theme!=='string')q.theme='classic';
+  q.theme='ac_racing';
   q.games=q.games&&typeof q.games==='object'?q.games:{};
   q.stickers=Array.isArray(q.stickers)?q.stickers.filter(s=>typeof s==='string'):[];
   q.days=Array.isArray(q.days)?q.days.filter(s=>typeof s==='string'):[];
@@ -1137,12 +1138,12 @@ function acTop(p,id){const a=ACAD[id],st=totalStars(p),L=levelOf(st),rk=rankOf(s
   return `<div class="ac-top"><button class="ac-back" id="acback" aria-label="Back to players">‹</button>
    <div class="ac-prof"><div class="ac-av">${heroHead(p,id)}</div><div class="ac-pi"><b>${esc(p.name)}</b><span>Level ${L.lv} · ${esc(a.ranks.split('|')[rk.i])}</span><div class="ac-xp"><i style="width:${Math.round(100*L.in/L.need)}%"></i><em>${L.in} / ${L.need}</em></div></div></div>
    <div class="ac-cur"><span>${a.coin} ${st}</span><span>📒 ${(p.stickers||[]).length}</span></div>
-   <button class="ac-gear" id="acthm" aria-label="Change theme">${ICON.palette}</button></div>`;}
+   </div>`;}
 function acNav(active){const items=[['home','Home','home'],['missions','Missions','flag'],['progress','Progress','bars'],['collection','Collection','chest'],['rewards','Rewards','trophy'],['parent','Parent Area','people']];
   return `<nav class="ac-nav">${items.map(([k,l,ic])=>`<button data-nav="${k}" class="${k===active?'on':''}">${ICON[ic]}<span>${l}</span></button>`).join('')}</nav>`;}
 function acFrame(p,id,inner,active){tm('build');const a=ACAD[id];setTheme(id);tm('theme');
   $('#app').innerHTML=`<div class="ac ac-${a.style}" data-ac="${id}" style="--ac:${a.acc}">${acTop(p,id)}${inner}${acNav(active)}</div>`;tm('html');
-  $('#acback').onclick=renderHome;$('#acthm').onclick=()=>renderThemePicker(p.id);
+  $('#acback').onclick=renderHome;
   document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{const k=b.dataset.nav;
     if(k==='home')renderAcademy(p.id);else if(k==='missions')renderSubject(p.id,'all');else if(k==='progress')renderProgress(p.id);
     else if(k==='collection')renderCollection(p.id);else if(k==='rewards')renderRewards(p.id);else renderParents();});
@@ -1180,7 +1181,7 @@ function renderCollection(pid){const p=getPlayer(pid);if(!p)return renderHome();
   acFrame(p,id,`<div class="ac-page"><h2 class="ac-h">${a.col}</h2><p class="ac-note">Earn ${a.coin} in any game to unlock more. Your ${a.colNoun} shows on your Academy home screen.</p>
    <div class="ac-cols">${a.items.map((it,i)=>{const open=UNLOCK[i]<=st;return `<div class="ac-item ${open?'':'locked'} ${i===eq?'eq':''}"><div class="ac-ip">${itemPreview(p,id,i)}</div><b>${esc(it[0])}</b>${open?(i===eq?'<span class="tag">Equipped</span>':`<button class="ac-eq" data-i="${i}">Equip</button>`):`<span class="lock">🔒 Unlocks at ${UNLOCK[i]} ${a.coin}</span>`}</div>`;}).join('')}</div></div>`,'collection');
   document.querySelectorAll('.ac-eq').forEach(b=>b.onclick=()=>{p.gear=p.gear||{};p.gear[id]=+b.dataset.i;savePlayer(p);beep(true);renderCollection(pid);});}
-function renderThemePicker(pid,back){const p=getPlayer(pid);if(!p)return renderHome();view='menu';viewPlayer=pid;cur=null;setTheme('classic');
+function renderThemePicker(pid,back){return racerModal(pid,back||(()=>renderMenu(pid)));const p=getPlayer(pid);if(!p)return renderHome();view='menu';viewPlayer=pid;cur=null;setTheme('classic');
   const cur0=p.theme||'classic';
   $('#app').innerHTML=`<div class="tp"><div class="topbar"><button class="btn ghost small" id="tpback">← Back</button></div>
    <h1 class="tp-h">Choose your Academy</h1><p class="sub">${esc(p.name)}, pick a world. You can change it any time. Your stars and levels stay the same.</p>
@@ -1527,7 +1528,7 @@ function renderParents(){
     const rows=GAMES.map(g=>{const s=gstat(p,g.id);const pct=s.total?Math.round(100*s.right/s.total)+'%':'—';
       return `<tr><td>${g.emoji} ${g.name}</td><td style="white-space:nowrap"><button class="lvbtn" data-p="${esc(p.id)}" data-g="${g.id}" data-d="-1" aria-label="Level down">−</button> <b>${s.level}</b> <button class="lvbtn" data-p="${esc(p.id)}" data-g="${g.id}" data-d="1" aria-label="Level up">+</button><div style="color:var(--muted);font-size:14px">${LEVEL_NOTES[g.id][s.level-1]}</div></td><td>⭐ ${s.stars}</td><td>${pct}</td></tr>`;}).join('');
     return `<div class="pcard"><div class="topbar"><h2 style="margin:0">${esc(p.avatar)} ${esc(p.name)} <span style="color:var(--muted);font-size:18px">age ${p.age}</span></h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost small" data-th="${esc(p.id)}">🎨 Theme: ${themeOf(p.theme).name}</button><button class="btn danger small" data-del="${esc(p.id)}">Remove</button></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost small" data-th="${esc(p.id)}">🏁 Racer: ${(RACERS.find(r=>r[0]===racerOf(p))||RACERS[0])[1]}</button><button class="btn danger small" data-del="${esc(p.id)}">Remove</button></div></div>
       <div style="overflow-x:auto"><table><tr><th>Game</th><th>Level</th><th>Stars</th><th>First try</th></tr>${rows}</table></div></div>`;}).join(''):'<p class="sub">No players yet.</p>';
   const vs=enVoices();
   $('#app').innerHTML=`
@@ -1573,7 +1574,7 @@ function renderParents(){
   document.querySelectorAll('#sfx .opt').forEach(b=>b.onclick=()=>{S.settings.sfx=b.dataset.v==='1';saveSettings();document.querySelectorAll('#sfx .opt').forEach(x=>x.classList.toggle('on',x===b));beep(true);});
   document.querySelectorAll('#rfirst .opt').forEach(b=>b.onclick=()=>{S.settings.readFirst=b.dataset.v==='1';saveSettings();document.querySelectorAll('#rfirst .opt').forEach(x=>x.classList.toggle('on',x===b));});
   document.querySelectorAll('.lvbtn').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.p);if(!p)return;const s=gstat(p,b.dataset.g);s.level=Math.min(5,Math.max(1,s.level+(+b.dataset.d)));s.maxLevel=Math.max(s.maxLevel,s.level);savePlayer(p);renderParents();});
-  document.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>renderThemePicker(b.dataset.th,renderParents));
+  document.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>racerModal(b.dataset.th,renderParents));
   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
     if(b.dataset.armed){removePlayer(b.dataset.del);renderParents();}
     else{b.dataset.armed='1';b.textContent='Tap again to remove';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='Remove';}},3000);}});
