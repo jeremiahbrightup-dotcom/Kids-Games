@@ -302,6 +302,10 @@ img.art{display:none}img.art.on{display:block;width:100%;height:100%;object-fit:
 .ac-hero{will-change:transform}.ac-hero.has-art{filter:none}.ac-hero.has-art img.art{object-position:center bottom}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* lite mode for older iPads: no moving effects, no shadows/filters */
+body.lite *,body.lite *::before,body.lite *::after{animation:none!important;transition:none!important;box-shadow:none!important;filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+body.lite .confetti,body.lite .fl{display:none!important}
 </style>
 </head>
 <body>
@@ -309,8 +313,9 @@ img.art{display:none}img.art.on{display:block;width:100%;height:100%;object-fit:
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='3.7';
+const APP_VERSION='3.8';
 const WHATS_NEW=[
+  {v:'3.8',items:[['🐢','Older iPads get a lighter, faster look automatically']]},
   {v:'3.7',items:[['⏱️','A timer to find what makes opening slow']]},
   {v:'3.6',items:[['🔢','The version number now shows at the bottom of the home screen']]},
   {v:'3.5',items:[['⚡','Much faster on iPhone and iPad']]},
@@ -524,6 +529,13 @@ const pw=(e,w)=>`<div class="pw"><span class="pe">${e}</span><span>${w}</span></
 function showErr(e,where){try{const m=(e&&(e.message||e.reason&&e.reason.message))||String(e);const st=(e&&e.stack||e&&e.error&&e.error.stack||'').split('\n').slice(0,3).join(' | ');
   let b=document.getElementById('errbox');if(!b){b=document.createElement('div');b.id='errbox';b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#7F1D1D;color:#fff;font:13px/1.35 system-ui;padding:10px 12px;border-radius:12px;max-height:40vh;overflow:auto';b.onclick=()=>b.remove();document.body.appendChild(b);}
   b.textContent='Oops (v'+APP_VERSION+(where?' · '+where:'')+'): '+m+(e&&e.lineno?' @'+e.lineno+':'+e.colno:'')+(st?' — '+st:'')+'  [tap to close]';}catch(_){}}
+/* lite mode: auto for older devices (2 CPU cores or slow frames); ?lite=1 / ?lite=0 to force */
+(function(){try{const q=new URLSearchParams(location.search).get('lite');if(q==='1'||q==='0')localStorage.setItem('klg-lite',q);
+  const saved=localStorage.getItem('klg-lite');const old=(navigator.hardwareConcurrency||4)<=2;
+  if(saved==='1'||(saved!=='0'&&old)){document.body.classList.add('lite');return;}
+  if(saved==='0')return;
+  let n=0,t0=0;const f=t=>{if(!t0)t0=t;n++;if(n<40)requestAnimationFrame(f);else{const avg=(t-t0)/39;if(avg>34){document.body.classList.add('lite');}}};
+  setTimeout(()=>requestAnimationFrame(f),1500);}catch(e){}})();
 const TM=[];const tm=l=>{try{TM.push([l,performance.now()]);}catch(e){}};
 function showTimes(){try{let gap=0,last=performance.now();const end=last+8000;
   const fin=()=>{const parts=[];for(let i=1;i<TM.length;i++)parts.push(TM[i][0]+' '+Math.round(TM[i][1]-TM[i-1][1]));
@@ -1178,7 +1190,7 @@ function renderHome(){
     <h2 class="who">${S.players.length?greet()+'! Who’s playing?':'Let’s get started!'}</h2>
     ${S.players.length?'':'<p class="sub">Add a player. Each kid gets their own levels, theme, stars and stickers.</p>'}
     <div class="kids">${cards}<button class="kid add" id="addp"><span class="kav">➕</span><span class="kname">Add player</span><span class="kstats">Ages 3 and up</span></button></div>
-    <div class="foot">${readToggle()}<button class="pill" id="parents">👪 Parent corner</button>${syncPill()}<span class="pill" style="opacity:.6">v${APP_VERSION}</span></div>`;
+    <div class="foot">${readToggle()}<button class="pill" id="parents">👪 Parent corner</button>${syncPill()}<span class="pill" style="opacity:.6">v${APP_VERSION}${document.body.classList.contains('lite')?' · lite':''}</span></div>`;
   const ub=$('#upd');if(ub)ub.onclick=()=>applyUpdate(updateReady);
   document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p){showErr(new Error('player not found'),'tap');return;}TM.length=0;tm('tap');try{toast('Opening '+p.name+'…');}catch(e){}try{speak(`Hi ${p.name}! Pick a game.`);}catch(e){}tm('speak');try{renderMenu(p.id);}catch(e){showErr(e,'menu');}tm('show');showTimes();});
   $('#addp').onclick=()=>playerModal();$('#parents').onclick=renderParents;bindToggle();
