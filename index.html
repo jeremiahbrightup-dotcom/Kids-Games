@@ -342,8 +342,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.8';
+const APP_VERSION='4.9';
 const WHATS_NEW=[
+  {v:'4.9',items:[['🗣️','Friendlier, more natural voice']]},
   {v:'4.8',items:[['🏎️','Brand-new shiny race cars in My Garage']]},
   {v:'4.7',items:[['🏎️','Everyone races now! The app is all Racing Academy']]},
   {v:'4.6',items:[['🏁','Pick your racer when you add a new player']]},
@@ -596,9 +597,15 @@ function beep(good){if(!S.settings.sfx)return;try{actx=actx||new (window.AudioCo
 let voice=null,warned=false,unlocked=false,tts=null;
 const canSpeak=()=>typeof window.speechSynthesis!=='undefined'&&typeof window.SpeechSynthesisUtterance!=='undefined';
 function enVoices(){try{return (speechSynthesis.getVoices()||[]).filter(v=>/^en/i.test(v.lang));}catch(e){return [];}}
+const NOVELTY=/Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Fred|Junior|Ralph|Kathy|Grandma|Grandpa|Eddy|Flo|Reed|Rocko|Sandy|Shelley/i;
+function voiceScore(v){let sc=0;const n=v.name||'';if(NOVELTY.test(n))return -100;
+  if(/Premium/i.test(n))sc+=60;else if(/Enhanced|Neural|Natural|Siri/i.test(n))sc+=40;
+  if(/Ava|Zoe|Samantha|Nicky|Allison|Susan|Evan|Joelle|Noelle|Google US English/i.test(n))sc+=15;
+  if(/en[-_]US/i.test(v.lang))sc+=10;else if(/^en/i.test(v.lang))sc+=4;if(v.localService===false)sc+=3;return sc;}
+const isNatural=v=>/Premium|Enhanced|Neural|Natural|Siri/i.test(v.name||'');
 function pickVoice(){try{const vs=speechSynthesis.getVoices()||[];
-  const chosen=S.settings.voiceName&&vs.find(v=>v.name===S.settings.voiceName);if(chosen){voice=chosen;return;}
-  voice=vs.find(v=>/en[-_]US/i.test(v.lang)&&/Samantha|Nicky|Aaron|Google US/i.test(v.name))||vs.find(v=>/en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;}catch(e){}}
+  const chosen=S.settings.voiceName&&vs.find(v=>v.name===S.settings.voiceName);if(chosen&&voiceScore(chosen)>-100){voice=chosen;return;}
+  voice=vs.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a))[0]||null;}catch(e){}}
 if(canSpeak()){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}}
 function unlockSpeech(){if(unlocked||!canSpeak())return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}}
 document.addEventListener('pointerdown',unlockSpeech,{once:true});
@@ -610,7 +617,7 @@ function speak(t,force){
     if(force&&!warned){warned=true;toast('Voice isn’t available here. Try Safari or Chrome.');}return;}
   setTimeout(()=>{try{const ss=speechSynthesis;if(!voice)pickVoice();
     const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(voice)u.voice=voice;const kid=S.settings.voiceStyle!=='adult';
-    u.rate={xslow:.55,slow:.7,normal:.9}[S.settings.speed]||.7;u.pitch=kid?1.7:1.05;u.volume=1;
+    u.rate={xslow:.7,slow:.82,normal:.95}[S.settings.speed]||.82;u.pitch=kid?1.2:1;u.volume=1;
     u.onerror=ev=>{if(force&&!warned&&ev&&ev.error!=='interrupted'&&ev.error!=='canceled'){warned=true;toast('Sound didn’t play. Check the iPad isn’t on silent.');}};
     if(ss.speaking||ss.pending){ss.cancel();setTimeout(()=>{try{ss.speak(u);}catch(e){}},80);}else{try{ss.resume();}catch(e){}ss.speak(u);}
   }catch(e){}},30);
@@ -1549,7 +1556,8 @@ function renderParents(){
     <div class="pcard"><h2 style="margin:0 0 6px">🔊 Voice</h2>
       <div class="opts" id="vstyle"><button class="opt${S.settings.voiceStyle!=='adult'?' on':''}" data-s="kid">🧒 Kid voice</button><button class="opt${S.settings.voiceStyle==='adult'?' on':''}" data-s="adult">🧑 Grown-up voice</button></div>
       ${vs.length?`<label class="lb" for="vname">Which voice</label><select id="vname" style="width:100%;font-family:inherit;font-size:17px;padding:10px;border-radius:12px;border:3px solid #E5DFF7;background:#fff;min-height:44px">
-        <option value="">Automatic</option>${vs.map(v=>`<option value="${esc(v.name)}"${v.name===S.settings.voiceName?' selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>`:''}
+        <option value="">Automatic (best voice)</option>${vs.filter(v=>voiceScore(v)>-100).sort((a,b)=>voiceScore(b)-voiceScore(a)).map(v=>`<option value="${esc(v.name)}"${v.name===S.settings.voiceName?' selected':''}>${isNatural(v)?'⭐ ':''}${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>`:''}
+      ${vs.some(isNatural)?'':'<div class="tip">💡 For a much more natural voice on iPad or iPhone: Settings → Accessibility → Spoken Content → Voices → English → tap <b>Ava</b> or <b>Zoe</b> → download <b>Premium</b>. Then come back here and pick it (it shows a ⭐).</div>'}
       <label class="lb">Speed</label>
       <div class="opts" id="vspeed">${[['xslow','🐢 Extra slow'],['slow','🐌 Slow'],['normal','🐇 Normal']].map(([k,l])=>`<button class="opt${S.settings.speed===k?' on':''}" data-k="${k}">${l}</button>`).join('')}</div>
       <div class="row" style="justify-content:flex-start"><button class="btn small" id="vtest">▶ Test voice</button></div></div>
