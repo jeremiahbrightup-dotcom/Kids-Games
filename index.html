@@ -308,8 +308,9 @@ img.art{display:none}img.art.on{display:block;width:100%;height:100%;object-fit:
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='3.3';
+const APP_VERSION='3.4';
 const WHATS_NEW=[
+  {v:'3.4',items:[['🛠️','Fix: tapping a player always opens their games']]},
   {v:'3.3',items:[['⚡','The app opens faster'],['📱','Fixes for phones and iPads']]},
   {v:'3.2',items:[['📱','Your racer looks right when the iPad is held up and down'],['⚡','The home screen runs smoother']]},
   {v:'3.1',items:[['🏎️','Racing Academy got a brand-new look: a real neon race garage and a new racer!']]},
@@ -509,6 +510,13 @@ function numChoices(ans,count=4,spread=3,min=0,fmt=String){
 }
 const pics=(e,n,cls='')=>`<div class="pics ${cls}">${Array.from({length:n},()=>`<span>${e}</span>`).join('')}</div>`;
 const pw=(e,w)=>`<div class="pw"><span class="pe">${e}</span><span>${w}</span></div>`;
+
+/* ================= error report (shows on screen so a photo can be sent) ================= */
+function showErr(e,where){try{const m=(e&&(e.message||e.reason&&e.reason.message))||String(e);const st=(e&&e.stack||e&&e.error&&e.error.stack||'').split('\n').slice(0,3).join(' | ');
+  let b=document.getElementById('errbox');if(!b){b=document.createElement('div');b.id='errbox';b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#7F1D1D;color:#fff;font:13px/1.35 system-ui;padding:10px 12px;border-radius:12px;max-height:40vh;overflow:auto';b.onclick=()=>b.remove();document.body.appendChild(b);}
+  b.textContent='Oops (v'+APP_VERSION+(where?' · '+where:'')+'): '+m+(e&&e.lineno?' @'+e.lineno+':'+e.colno:'')+(st?' — '+st:'')+'  [tap to close]';}catch(_){}}
+window.addEventListener('error',ev=>showErr(ev.error||ev,'page'));
+window.addEventListener('unhandledrejection',ev=>showErr(ev.reason||ev,'promise'));
 
 /* ================= sound + speech ================= */
 let actx=null;
@@ -1156,7 +1164,7 @@ function renderHome(){
     <div class="kids">${cards}<button class="kid add" id="addp"><span class="kav">➕</span><span class="kname">Add player</span><span class="kstats">Ages 3 and up</span></button></div>
     <div class="foot">${readToggle()}<button class="pill" id="parents">👪 Parent corner</button>${syncPill()}</div>`;
   const ub=$('#upd');if(ub)ub.onclick=()=>applyUpdate(updateReady);
-  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p)return;speak(`Hi ${p.name}! Pick a game.`);renderMenu(p.id);});
+  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p)return;try{speak(`Hi ${p.name}! Pick a game.`);}catch(e){}try{renderMenu(p.id);}catch(e){showErr(e,'menu');}});
   $('#addp').onclick=()=>playerModal();$('#parents').onclick=renderParents;bindToggle();
 }
 function playerModal(){
@@ -1177,7 +1185,7 @@ function playerModal(){
 }
 function renderMenu(pid){
   const p=getPlayer(pid);if(!p)return renderHome();
-  if(isAcad(p.theme))return renderAcademy(pid);
+  if(isAcad(p.theme)){try{return renderAcademy(pid);}catch(e){showErr(e,'academy');}}
   view='menu';viewPlayer=pid;cur=null;setTheme(p.theme);if(S.settings.lastTheme!==(p.theme||'classic')){S.settings.lastTheme=p.theme||'classic';saveSettings();}const st=totalStars(p),rk=rankOf(st);
   const cards=GAMES.map((g,i)=>{const s=gstat(p,g.id);return `<button class="game" data-g="${g.id}" style="background:${TH.tiles?TH.tiles[i%TH.tiles.length]:g.color}">
     <div class="gl">Level ${s.level}</div>${g.fresh&&!s.rounds?'<div class="nw">New!</div>':''}<div class="ge">${gIcon(g)}</div><div class="gn">${g.name}</div><div class="gs">${LEVEL_NOTES[g.id][s.level-1]}</div><div class="gs">${coin()} ${s.stars}</div></button>`;}).join('');
