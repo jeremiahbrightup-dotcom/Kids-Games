@@ -342,8 +342,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.9';
+const APP_VERSION='4.10';
 const WHATS_NEW=[
+  {v:'4.10',items:[['🎉','Cheers sound more excited']]},
   {v:'4.9',items:[['🗣️','Friendlier, more natural voice']]},
   {v:'4.8',items:[['🏎️','Brand-new shiny race cars in My Garage']]},
   {v:'4.7',items:[['🏎️','Everyone races now! The app is all Racing Academy']]},
@@ -617,7 +618,9 @@ function speak(t,force){
     if(force&&!warned){warned=true;toast('Voice isn’t available here. Try Safari or Chrome.');}return;}
   setTimeout(()=>{try{const ss=speechSynthesis;if(!voice)pickVoice();
     const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(voice)u.voice=voice;const kid=S.settings.voiceStyle!=='adult';
-    u.rate={xslow:.7,slow:.82,normal:.95}[S.settings.speed]||.82;u.pitch=kid?1.2:1;u.volume=1;
+    u.rate={xslow:.7,slow:.82,normal:.95}[S.settings.speed]||.82;u.pitch=kid?1.2:1;
+    const str=String(t),hype=/!\s*$/.test(str)&&str.length<60;if(hype){u.pitch=Math.min(2,u.pitch+.25);u.rate=Math.min(1.15,u.rate+.12);}
+    else if(/\?\s*$/.test(str)){u.pitch=Math.min(2,u.pitch+.08);}u.volume=1;
     u.onerror=ev=>{if(force&&!warned&&ev&&ev.error!=='interrupted'&&ev.error!=='canceled'){warned=true;toast('Sound didn’t play. Check the iPad isn’t on silent.');}};
     if(ss.speaking||ss.pending){ss.cancel();setTimeout(()=>{try{ss.speak(u);}catch(e){}},80);}else{try{ss.resume();}catch(e){}ss.speak(u);}
   }catch(e){}},30);
