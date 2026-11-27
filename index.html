@@ -608,11 +608,27 @@ function pickVoice(){try{const vs=speechSynthesis.getVoices()||[];
   const chosen=S.settings.voiceName&&vs.find(v=>v.name===S.settings.voiceName);if(chosen&&voiceScore(chosen)>-100){voice=chosen;return;}
   voice=vs.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a))[0]||null;}catch(e){}}
 if(canSpeak()){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}}
-function unlockSpeech(){if(unlocked||!canSpeak())return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}}
+function unlockSpeech(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}voLoad();if(unlocked||!canSpeak())return;unlocked=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}}
 document.addEventListener('pointerdown',unlockSpeech,{once:true});
 document.addEventListener('touchstart',unlockSpeech,{once:true});
+/* ===== recorded kid voice: one sprite file + map of phrases -> [start,end] seconds; stitched with Web Audio ===== */
+const VO={map:null,buf:null,loading:false,src:null,timer:null};
+const voNorm=t=>String(t).toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim();
+function voLoad(){if(VO.loading||VO.buf)return;VO.loading=true;
+  fetch('audio/voice.json').then(r=>r.ok?r.json():null).then(m=>{if(!m||!m.clips)return null;VO.map=m.clips;return fetch('audio/'+m.file).then(r=>r.arrayBuffer());})
+   .then(ab=>{if(!ab)return;actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+     return new Promise((ok,no)=>actx.decodeAudioData(ab,ok,no));}).then(b=>{if(b)VO.buf=b;}).catch(()=>{}).finally(()=>{VO.loading=false;});}
+function voPlan(t){if(!VO.map)return null;const w=voNorm(t).split(' ').filter(Boolean),out=[];let i=0;
+  while(i<w.length){let hit=0;for(let n=Math.min(14,w.length-i);n>0;n--){const k=w.slice(i,i+n).join(' ');if(VO.map[k]){out.push(VO.map[k]);hit=n;break;}}
+    if(!hit)return null;i+=hit;}return out.length?out:null;}
+function voStop(){try{VO.src&&VO.src.forEach(x=>{try{x.stop();}catch(e){}});}catch(e){}VO.src=null;}
+function voSpeak(t){try{if(!VO.buf||!actx)return false;const plan=voPlan(t);if(!plan)return false;
+  voStop();try{speechSynthesis.cancel();}catch(e){}if(actx.state==='suspended')actx.resume();
+  let at=actx.currentTime+.03;VO.src=plan.map(([a,b])=>{const s=actx.createBufferSource();s.buffer=VO.buf;s.connect(actx.destination);s.start(at,a,Math.max(.05,b-a));at+=(b-a)+.06;return s;});
+  return true;}catch(e){return false;}}
 function speak(t,force){
   if(!t||(!S.settings.readAloud&&!force))return;
+  if(S.settings.kidVO!==false&&voSpeak(t))return;voStop();
   if(!canSpeak()){
     if(tts){tts.speak(String(t).slice(0,1900),{voice:'airy',rate:S.settings.speed==='normal'?1:.8}).catch(()=>{});return;}
     if(force&&!warned){warned=true;toast('Voice isn’t available here. Try Safari or Chrome.');}return;}
@@ -625,7 +641,7 @@ function speak(t,force){
     if(ss.speaking||ss.pending){ss.cancel();setTimeout(()=>{try{ss.speak(u);}catch(e){}},80);}else{try{ss.resume();}catch(e){}ss.speak(u);}
   }catch(e){}},30);
 }
-const hush=()=>{try{speechSynthesis.cancel();}catch(e){}try{tts&&tts.stop();}catch(e){}};
+const hush=()=>{voStop();try{speechSynthesis.cancel();}catch(e){}try{tts&&tts.stop();}catch(e){}};
 const PRAISE=['Great job!','You got it!','Awesome!','Super smart!','Way to go!','Yes! Nice work!','You are a star!','Brilliant!'];
 
 /* ================= pictures ================= */
@@ -1251,7 +1267,7 @@ function renderHome(){
     <div class="kids">${cards}<button class="kid add" id="addp"><span class="kav">➕</span><span class="kname">Add player</span><span class="kstats">Ages 3 and up</span></button></div>
     <div class="foot">${readToggle()}<button class="pill" id="parents">👪 Parent corner</button>${syncPill()}<span class="pill" style="opacity:.6">v${APP_VERSION}${document.body.classList.contains('lite')?' · lite':''}</span></div>`;
   const ub=$('#upd');if(ub)ub.onclick=()=>applyUpdate(updateReady);
-  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p){showErr(new Error('player not found'),'tap');return;}TM.length=0;tm('tap');try{toast('Opening '+p.name+'…');}catch(e){}try{speak(`Hi ${p.name}! Pick a game.`);}catch(e){}tm('speak');try{renderMenu(p.id);}catch(e){showErr(e,'menu');}tm('show');if(/debug=1/.test(location.search))showTimes();});
+  document.querySelectorAll('.kid[data-id]').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.id);if(!p){showErr(new Error('player not found'),'tap');return;}TM.length=0;tm('tap');try{toast('Opening '+p.name+'…');}catch(e){}try{speak('Let’s race! Pick a game!');}catch(e){}tm('speak');try{renderMenu(p.id);}catch(e){showErr(e,'menu');}tm('show');if(/debug=1/.test(location.search))showTimes();});
   $('#addp').onclick=()=>playerModal();$('#parents').onclick=renderParents;bindToggle();
 }
 function playerModal(){
