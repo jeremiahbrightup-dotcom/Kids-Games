@@ -329,6 +329,9 @@ body.rhome .kid.add{background:rgba(15,23,42,.72);border-color:#22D3EE}body.rhom
 .rc.on{border-color:#FACC15;box-shadow:0 0 0 3px #FACC15}
 @media(max-width:600px){.rc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rc img{height:150px}}
 #rcs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}@media(max-width:480px){#rcs{grid-template-columns:repeat(2,minmax(0,1fr))}}.opt.rcf{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;width:auto;margin:0}.opt.rcf img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--rc)}.opt.rcf span{font-size:12px;font-weight:700;line-height:1.1}
+.car-art{width:100%;height:100%;object-fit:contain;display:block}
+.ac-item.locked .ac-ip{opacity:.6}.ac-item.locked .car-art{filter:grayscale(1) brightness(.55)}
+.ac-item .tag{background:#FACC15;color:#422006;border-radius:999px;padding:4px 14px;font-size:16px}
 /* lite mode for older iPads: no moving effects, no shadows/filters */
 body.lite *,body.lite *::before,body.lite *::after{animation:none!important;transition:none!important;box-shadow:none!important;filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body.lite .confetti,body.lite .fl{display:none!important}
@@ -339,8 +342,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.7';
+const APP_VERSION='4.8';
 const WHATS_NEW=[
+  {v:'4.8',items:[['🏎️','Brand-new shiny race cars in My Garage']]},
   {v:'4.7',items:[['🏎️','Everyone races now! The app is all Racing Academy']]},
   {v:'4.6',items:[['🏁','Pick your racer when you add a new player']]},
   {v:'4.5',items:[['🏁','Pick your racer! 4 racers to choose from, boys and girls']]},
@@ -1009,7 +1013,7 @@ palette:`<svg viewBox="0 0 100 100"><path d="M50 10 Q90 10 90 46 Q90 64 72 62 Q5
 const COL_ICON={allstar:`<svg viewBox="0 0 100 100"><path d="M30 14 L14 26 L22 44 L30 40 V88 H70 V40 L78 44 L86 26 L70 14 Q60 24 50 24 Q40 24 30 14Z" fill="#DC2626" stroke="#fff" stroke-width="4"/><text x="50" y="70" text-anchor="middle" font-family="Luckiest Guy,Fredoka" font-size="26" fill="#fff">10</text></svg>`,
  hero:`<svg viewBox="0 0 100 100"><path d="M50 8 L86 20 Q86 66 50 92 Q14 66 14 20Z" fill="#DC2626" stroke="#FACC15" stroke-width="6"/><polygon points="50,30 56,44 71,45 59,54 63,69 50,61 37,69 41,54 29,45 44,44" fill="#FACC15"/></svg>`,
  block:`<svg viewBox="0 0 100 100"><path d="M50 10 L88 30 L50 50 L12 30Z" fill="#4ADE80"/><path d="M12 30 L50 50 V92 L12 72Z" fill="#A16207"/><path d="M88 30 L50 50 V92 L88 72Z" fill="#78350F"/></svg>`,
- racing:carSVG('#2563EB'),space:rocketSVG('#EA580C'),
+ racing:'<img class="car-art" src="art/racing/car-0.webp" alt="">',space:rocketSVG('#EA580C'),
  dino:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="34" ry="40" fill="#FEF3C7" stroke="#A16207" stroke-width="5"/><path d="M36 44 Q50 30 64 44" stroke="#A16207" stroke-width="4" fill="none"/></svg>`,
  ninja:`<svg viewBox="0 0 100 100"><g transform="translate(50 50)" fill="#E5E7EB" stroke="#fff" stroke-width="3"><path d="M0 -44 L10 -10 L44 0 L10 10 L0 44 L-10 10 L-44 0 L-10 -10Z"/></g><circle cx="50" cy="50" r="7" fill="#1E293B"/></svg>`,
  dragon:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="56" rx="30" ry="38" fill="#DC2626" stroke="#FDE68A" stroke-width="5"/><path d="M34 40 Q50 52 66 36 M30 62 Q50 72 70 58" stroke="#FDE68A" stroke-width="4" fill="none"/></svg>`};
@@ -1075,7 +1079,7 @@ function heroFor(p,id,idx){const a=ACAD[id],it=a.items[idx==null?gearIdx(p,id):i
 function heroSVGfull(p,id,idx){return `<svg viewBox="0 -10 240 340" width="100%" height="100%" aria-hidden="true">${heroFor(p,id,idx)}</svg>`;}
 function heroHead(p,id){if(AK(id)==='racing')return `<img src="art/racing/${racerFile(p,'head')}" alt="" style="width:100%;height:100%;object-fit:cover">`;return `<svg viewBox="40 0 130 140" width="100%" height="100%" aria-hidden="true">${heroFor(p,id)}</svg>`;}
 function itemPreview(p,id,i){const it=ACAD[id].items[i];
-  const k=AK(id);if(k==='racing')return carSVG(it[1],it[2]);if(k==='space')return rocketSVG(it[1]);
+  const k=AK(id);if(k==='racing')return `<img class="car-art" src="art/racing/car-${i}.webp" alt="">`;if(k==='space')return rocketSVG(it[1]);
   if(k==='dino')return `<svg viewBox="-130 -80 260 190" width="100%" height="100%">${dinoBuddy(it[1])}</svg>`;
   if(k==='dragon')return `<svg viewBox="-160 -140 330 250" width="100%" height="100%">${dragonBuddy(it[1])}</svg>`;
   return heroSVGfull(p,id,i);}
