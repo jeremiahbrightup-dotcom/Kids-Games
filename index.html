@@ -344,8 +344,9 @@ body.lite .confetti,body.lite .fl{display:none!important}
 <script>
 {
 /* ================= version + what's new (edit these when you update) ================= */
-const APP_VERSION='4.14';
+const APP_VERSION='4.15';
 const WHATS_NEW=[
+  {v:'4.15',items:[['👪','Simpler Parent corner']]},
   {v:'4.14',items:[['🔢','Fena now says the right numbers and cheers']]},
   {v:'4.13',items:[['🎙️','Kid voice now plays from the very first tap']]},
   {v:'4.12',items:[['📖','Jett and Fena now read every word in the reading games']]},
@@ -1581,27 +1582,14 @@ function renderParents(){
     return `<div class="pcard"><div class="topbar"><h2 style="margin:0">${esc(p.avatar)} ${esc(p.name)} <span style="color:var(--muted);font-size:18px">age ${p.age}</span></h2>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost small" data-th="${esc(p.id)}">🏁 Racer: ${(RACERS.find(r=>r[0]===racerOf(p))||RACERS[0])[1]}</button><button class="btn danger small" data-del="${esc(p.id)}">Remove</button></div></div>
       <div style="overflow-x:auto"><table><tr><th>Game</th><th>Level</th><th>Stars</th><th>First try</th></tr>${rows}</table></div></div>`;}).join(''):'<p class="sub">No players yet.</p>';
-  const vs=enVoices();
   $('#app').innerHTML=`
     <div class="topbar"><button class="btn ghost small" id="back">← Back</button>${readToggle()}</div>
     <h1>👪 Parent corner</h1>
-    <div class="pcard"><h2 style="margin:0 0 6px">☁️ Saving</h2>${syncPill()}
-      <div class="tip">When you open this game while signed in to Claude, players, stars and stickers save to your Claude account. They show up the same on your phone, iPad and laptop. If it says “this device only,” sign in to Claude in that browser. You can also use a backup code below.</div>
-      <div class="row" style="justify-content:flex-start"><button class="btn small ghost" id="bk">📋 Copy backup code</button><button class="btn small ghost" id="rs">📥 Restore from code</button></div>
-      <div id="bkbox"></div></div>
     <div class="pcard"><h2 style="margin:0 0 6px">🔄 Updates</h2>
       <div>You have version <b>${APP_VERSION}</b>.</div>
       <div class="row" style="justify-content:flex-start"><button class="btn small" id="chk">Check for updates</button><button class="btn small ghost" id="wn">🎁 What’s new</button></div>
       <div class="tip" id="chkmsg"></div></div>
-    <div class="pcard"><h2 style="margin:0 0 6px">🔊 Voice</h2>
-      <div class="tip">🎙️ Each kid picks their racing voice (Jett or Fena) under <b>Change racer</b>. Long sentences, like stories, use the backup voice below.</div>
-      ${vs.length?`<label class="lb" for="vname">Backup voice</label><select id="vname" style="width:100%;font-family:inherit;font-size:17px;padding:10px;border-radius:12px;border:3px solid #E5DFF7;background:#fff;min-height:44px">
-        <option value="">Automatic (best voice)</option>${vs.filter(v=>voiceScore(v)>-100).sort((a,b)=>voiceScore(b)-voiceScore(a)).map(v=>`<option value="${esc(v.name)}"${v.name===S.settings.voiceName?' selected':''}>${isNatural(v)?'⭐ ':''}${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>`:''}
-      ${vs.some(isNatural)?'':'<div class="tip">💡 For a much more natural voice on iPad or iPhone: Settings → Accessibility → Spoken Content → Voices → English → tap <b>Ava</b> or <b>Zoe</b> → download <b>Premium</b>. Then come back here and pick it (it shows a ⭐).</div>'}
-      <label class="lb">Speed</label>
-      <div class="opts" id="vspeed">${[['xslow','🐢 Extra slow'],['slow','🐌 Slow'],['normal','🐇 Normal']].map(([k,l])=>`<button class="opt${S.settings.speed===k?' on':''}" data-k="${k}">${l}</button>`).join('')}</div>
-      <div class="row" style="justify-content:flex-start"><button class="btn small" id="vtest">▶ Test voice</button></div><div class="tip" style="opacity:.75">Kid voices by ElevenLabs.</div></div>
-    <div class="pcard"><h2 style="margin:0 0 6px">🔔 Sound effects</h2><div class="opts" id="sfx"><button class="opt${S.settings.sfx?' on':''}" data-v="1">On</button><button class="opt${!S.settings.sfx?' on':''}" data-v="0">Off</button></div><div class="tip">Each Academy theme has its own right-answer sound.</div></div>
+    <div class="pcard"><h2 style="margin:0 0 6px">🔔 Sound effects</h2><div class="opts" id="sfx"><button class="opt${S.settings.sfx?' on':''}" data-v="1">On</button><button class="opt${!S.settings.sfx?' on':''}" data-v="0">Off</button></div></div>
     <div class="pcard"><h2 style="margin:0 0 6px">🎤 Read out loud first</h2>
       <div class="opts" id="rfirst"><button class="opt${S.settings.readFirst?' on':''}" data-v="1">On</button><button class="opt${!S.settings.readFirst?' on':''}" data-v="0">Off</button></div>
       <div class="tip">In Read &amp; Tap, the answers stay hidden until your child reads the sentence out loud. The game listens when the app allows the microphone. Otherwise a grown-up taps 👍.</div></div>
@@ -1612,17 +1600,6 @@ function renderParents(){
   $('#chk').onclick=async()=>{const m=$('#chkmsg');m.textContent='Checking…';const v=await checkUpdate();
     if(v){m.innerHTML=`Version ${esc(v)} is ready. <button class="btn small" id="getu" style="margin-top:8px">Update now</button>`;$('#getu').onclick=()=>applyUpdate(v);}
     else m.textContent='You have the newest version. If you just uploaded a change, wait a minute and check again.';};
-  $('#bk').onclick=()=>{const code=btoa(unescape(encodeURIComponent(JSON.stringify(S))));
-    $('#bkbox').innerHTML=`<label class="lb" for="bkt">Backup code (keep it in your Notes app)</label><textarea class="code" id="bkt" rows="3" readonly>${esc(code)}</textarea>`;
-    const t=$('#bkt');t.select();try{navigator.clipboard.writeText(code).then(()=>toast('Backup code copied'),()=>{});}catch(e){}};
-  $('#rs').onclick=()=>{$('#bkbox').innerHTML=`<label class="lb" for="rst">Paste a backup code</label><textarea class="code" id="rst" rows="3"></textarea><div class="row" style="justify-content:flex-start"><button class="btn small" id="rsgo">Restore</button></div><div class="tip">This replaces the players here with the ones in the code.</div>`;
-    $('#rsgo').onclick=()=>{try{const d=JSON.parse(decodeURIComponent(escape(atob($('#rst').value.trim()))));const ps=(d.players||[]).map(cleanP).filter(Boolean);if(!ps.length)throw 0;
-        S.players.forEach(p=>{if(!ps.some(x=>x.id===p.id))queue('p_'+p.id,null);});S.players=ps;S.settings=cleanSet(d.settings);ps.forEach(p=>queue('p_'+p.id,p));saveSettings();toast('Restored!');renderParents();}
-      catch(e){toast('That code didn’t work. Check it was copied in full.');}};};
-  document.querySelectorAll('#vstyle .opt').forEach(b=>b.onclick=()=>{S.settings.voiceStyle=b.dataset.s;saveSettings();document.querySelectorAll('#vstyle .opt').forEach(x=>x.classList.toggle('on',x===b));speak('Hi! Let’s learn and have fun!',true);});
-  const vn=$('#vname');if(vn)vn.onchange=e=>{S.settings.voiceName=e.target.value;saveSettings();voice=null;pickVoice();speak('Hi! Let’s learn and have fun!',true);};
-  $('#vtest').onclick=()=>speak('Hi! Let’s learn and have fun!',true);
-  document.querySelectorAll('#vspeed .opt').forEach(b=>b.onclick=()=>{S.settings.speed=b.dataset.k;saveSettings();document.querySelectorAll('#vspeed .opt').forEach(x=>x.classList.toggle('on',x===b));speak('I put on my shoes to go out.',true);});
   document.querySelectorAll('#sfx .opt').forEach(b=>b.onclick=()=>{S.settings.sfx=b.dataset.v==='1';saveSettings();document.querySelectorAll('#sfx .opt').forEach(x=>x.classList.toggle('on',x===b));beep(true);});
   document.querySelectorAll('#rfirst .opt').forEach(b=>b.onclick=()=>{S.settings.readFirst=b.dataset.v==='1';saveSettings();document.querySelectorAll('#rfirst .opt').forEach(x=>x.classList.toggle('on',x===b));});
   document.querySelectorAll('.lvbtn').forEach(b=>b.onclick=()=>{const p=getPlayer(b.dataset.p);if(!p)return;const s=gstat(p,b.dataset.g);s.level=Math.min(5,Math.max(1,s.level+(+b.dataset.d)));s.maxLevel=Math.max(s.maxLevel,s.level);savePlayer(p);renderParents();});
